@@ -101,12 +101,13 @@ h1, h2, h3, h4 {
 .cs-btn:disabled { opacity: 0.4; cursor: not-allowed; }
 
 .cs-btn--accent {
-  height: 44px;
-  padding: 0 22px;
+  height: 48px;
+  padding: 0 26px;
   background: var(--accent);
   border-color: var(--accent);
   color: var(--accent-bold);
   font-weight: 700;
+  font-size: 16px;
 }
 .cs-btn--accent:hover:not(:disabled) {
   box-shadow: 0 6px 24px rgba(255, 240, 124, 0.55);
@@ -138,12 +139,12 @@ h1, h2, h3, h4 {
 /* Sub-label CopySight */
 .cs-label {
   font-family: inherit;
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 600;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
   color: var(--accent-bold);
-  opacity: 0.55;
+  opacity: 0.5;
 }
 
 /* AI-native typing pulse */

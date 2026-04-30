@@ -173,8 +173,8 @@ function Studio() {
 
   return (
     <div className="min-h-screen flex flex-col">
-      <header className="sticky top-3 z-30 mx-3 cs-capsule rounded-pill">
-        <div className="h-[60px] px-5 flex items-center justify-between">
+      <header className="sticky top-4 z-30 mx-4 mt-4 cs-capsule rounded-pill">
+        <div className="h-[64px] px-6 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="font-display font-bold text-[18px] tracking-tightest leading-none flex items-baseline gap-1.5 text-accent-bold">
               <span>PXL</span>
@@ -203,19 +203,19 @@ function Studio() {
         </div>
       </header>
 
-      <main className="flex-1 flex flex-col md:grid md:grid-cols-2 gap-4 p-4 pt-3">
-        <section className="flex flex-col gap-4">
+      <main className="flex-1 flex flex-col md:grid md:grid-cols-2 gap-6 p-6 pt-6">
+        <section className="flex flex-col gap-5">
           <Toolbar onGenerate={onGenerate} />
-          <div className="relative flex-1 cs-card flex items-center justify-center min-h-[400px] no-touch overflow-hidden p-6">
-            <span className="absolute top-5 left-6 cs-label z-10">Editor · {size}×{size}</span>
+          <div className="relative flex-1 cs-card flex items-center justify-center min-h-[440px] no-touch overflow-hidden p-8">
+            <span className="absolute top-6 left-8 cs-label z-10">Editor · {size}×{size}</span>
             <PixelCanvas />
           </div>
           <PressurePanel />
         </section>
 
-        <section className="flex flex-col gap-4">
+        <section className="flex flex-col gap-5">
           <StyleSelector />
-          <div className="flex-1 min-h-[400px]">
+          <div className="flex-1 min-h-[480px]">
             <ModelViewer />
           </div>
         </section>

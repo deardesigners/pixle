@@ -10,14 +10,14 @@ const PICO8 = [
 export function ColorPalette() {
   const { color, setColor } = useEditor();
   return (
-    <div className="flex items-center gap-2">
-      <div className="grid grid-cols-8 gap-1">
+    <div className="flex items-center gap-2.5">
+      <div className="grid grid-cols-8 gap-1.5">
         {PICO8.map((c) => (
           <button
             key={c}
             aria-label={c}
             className={cn(
-              'w-5 h-5 rounded-full transition-transform',
+              'w-6 h-6 rounded-full transition-transform',
               color.toLowerCase() === c.toLowerCase()
                 ? 'ring-2 ring-text ring-offset-2 ring-offset-white scale-110'
                 : 'hover:scale-110 hover:ring-1 hover:ring-text/30'
@@ -27,7 +27,7 @@ export function ColorPalette() {
           />
         ))}
       </div>
-      <label className="relative w-8 h-8 rounded-full border-[1.5px] border-text/20 overflow-hidden cursor-pointer ml-1 hover:border-text transition-colors">
+      <label className="relative w-10 h-10 rounded-full border-[1.5px] border-text/20 overflow-hidden cursor-pointer ml-1 hover:border-text transition-colors">
         <input
           type="color"
           value={color}
