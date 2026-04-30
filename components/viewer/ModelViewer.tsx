@@ -167,6 +167,11 @@ function ProgressOverlay({
           </>
         ) : (
           <>
+            <div className="flex items-center justify-center gap-1.5 mb-3">
+              <span className="ai-dot" />
+              <span className="ai-dot" />
+              <span className="ai-dot" />
+            </div>
             <div className="text-sm font-medium mb-2 capitalize">{status}…</div>
             <div className="h-1.5 bg-border rounded-full overflow-hidden">
               <div

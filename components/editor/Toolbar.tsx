@@ -126,16 +126,17 @@ export function Toolbar({ onGenerate }: { onGenerate: () => void }) {
           size="md"
           onClick={onGenerate}
           disabled={isEmpty || generating}
+          className="bg-gradient-to-r from-accent to-secondary hover:shadow-glow transition-shadow"
         >
           {generating ? (
             <>
               <ImagePlus className="h-4 w-4 animate-pulse" />
-              Generating…
+              Rendering…
             </>
           ) : (
             <>
               <Sparkles className="h-4 w-4" />
-              Generate 3D
+              Render Hi-res
             </>
           )}
         </Button>

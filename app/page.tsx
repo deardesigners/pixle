@@ -164,17 +164,24 @@ function Studio() {
 
   return (
     <div className="min-h-screen flex flex-col">
-      <header className="sticky top-0 z-30 bg-bg/80 backdrop-blur border-b border-border px-4 py-3 flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <ImageIcon className="h-5 w-5 text-accent" />
-          <h1 className="font-semibold text-lg">Pixel-to-3D Studio</h1>
+      <header className="sticky top-0 z-30 bg-bg/80 backdrop-blur border-b border-border bg-aurora">
+        <div className="px-4 py-3 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="relative">
+              <ImageIcon className="h-5 w-5 text-accent" />
+              <div className="absolute inset-0 blur-md bg-accent/40 rounded-full -z-10" />
+            </div>
+            <h1 className="font-heading font-semibold text-lg tracking-tight">
+              Pixel-to-3D <span className="bg-gradient-to-r from-accent to-accent2 bg-clip-text text-transparent">Studio</span>
+            </h1>
+          </div>
+          <Link href="/gallery">
+            <Button variant="secondary" size="sm">
+              <GalleryHorizontal className="h-4 w-4" />
+              Gallery
+            </Button>
+          </Link>
         </div>
-        <Link href="/gallery">
-          <Button variant="secondary" size="sm">
-            <GalleryHorizontal className="h-4 w-4" />
-            Gallery
-          </Button>
-        </Link>
       </header>
 
       <main className="flex-1 flex flex-col md:grid md:grid-cols-2 gap-3 p-3">
