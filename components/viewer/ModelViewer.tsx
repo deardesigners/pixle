@@ -2,7 +2,7 @@
 
 import { Suspense, useEffect, useMemo, useRef, useState } from 'react';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
-import { OrbitControls, Environment, useGLTF, ContactShadows } from '@react-three/drei';
+import { OrbitControls, Environment, useGLTF, ContactShadows, Instances, Instance } from '@react-three/drei';
 import * as THREE from 'three';
 import { useEditor } from '@/lib/store';
 import { STYLE_PRESETS } from '@/lib/styles';
@@ -76,7 +76,7 @@ export function ModelViewer({ onScreenshot }: Props) {
         <directionalLight position={[5, 5, 5]} intensity={1.1} castShadow />
         <Suspense fallback={null}>
           <Environment preset="studio" />
-          {currentModel ? (
+          {currentModel && !currentModel.url.startsWith('demo://') ? (
             <ModelLoader
               url={currentModel.url}
               styleId={currentStyle}
@@ -85,7 +85,12 @@ export function ModelViewer({ onScreenshot }: Props) {
               registerCapture={(fn) => (captureRef.current = fn)}
             />
           ) : (
-            <PlaceholderCube />
+            <LivePixelModel
+              styleId={currentStyle}
+              wireframe={wireframe}
+              resetSignal={resetSignal}
+              registerCapture={(fn) => (captureRef.current = fn)}
+            />
           )}
           <ContactShadows
             position={[0, -1.05, 0]}
@@ -207,10 +212,6 @@ function ModelLoader({
     camera.lookAt(0, 0, 0);
   }, [camera, resetSignal]);
 
-  if (url.startsWith('demo://')) {
-    return <DemoVoxelModel styleId={styleId} wireframe={wireframe} />;
-  }
-
   return <RealModel url={url} styleId={styleId} wireframe={wireframe} />;
 }
 
@@ -253,55 +254,111 @@ function RealModel({
   );
 }
 
-function DemoVoxelModel({
+/**
+ * Real-time 3D-превью пиксельного канваса. Перестраивается на каждый штрих
+ * через зависимость от `version` (Uint8ClampedArray мутируется in-place).
+ * InstancedMesh выдерживает до ~4096 кубов (64×64) без падения FPS.
+ */
+function LivePixelModel({
   styleId,
-  wireframe
+  wireframe,
+  resetSignal,
+  registerCapture
 }: {
   styleId: keyof typeof STYLE_PRESETS;
   wireframe: boolean;
+  resetSignal: number;
+  registerCapture: (fn: () => string | null) => void;
 }) {
+  const { pixels, size, version } = useEditor();
+  const { gl, camera } = useThree();
   const groupRef = useRef<THREE.Group>(null);
-  const { pixels, size } = useEditor();
+
+  useEffect(() => {
+    registerCapture(() => {
+      try {
+        return gl.domElement.toDataURL('image/png');
+      } catch {
+        return null;
+      }
+    });
+  }, [gl, registerCapture]);
+
+  useEffect(() => {
+    camera.position.set(3, 2.5, 3);
+    camera.lookAt(0, 0, 0);
+  }, [camera, resetSignal]);
 
   const cubes = useMemo(() => {
-    const out: Array<{ pos: [number, number, number]; color: string }> = [];
+    const out: Array<{ pos: [number, number, number]; color: THREE.Color; depth: number }> = [];
     const half = size / 2;
     for (let y = 0; y < size; y++) {
       for (let x = 0; x < size; x++) {
         const i = (y * size + x) * 4;
         const a = pixels[i + 3] ?? 0;
-        if (a < 32) continue;
+        if (a < 16) continue;
         const r = pixels[i] ?? 0;
         const g = pixels[i + 1] ?? 0;
         const b = pixels[i + 2] ?? 0;
+        // Лёгкая Z-экструзия по яркости — даёт ощущение объёма из плоского рисунка.
+        const lum = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+        const depth = styleId === 'voxel' || styleId === 'lowpoly' ? 0.3 + lum * 0.6 : 1;
         out.push({
           pos: [x - half + 0.5, half - y - 0.5, 0],
-          color: `rgb(${r},${g},${b})`
+          color: new THREE.Color(r / 255, g / 255, b / 255),
+          depth
         });
       }
     }
     return out;
-  }, [pixels, size]);
+    // version форсирует пересчёт даже если pixels-ссылка та же.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pixels, size, version, styleId]);
 
   useStyleAnimation(groupRef, styleId);
 
   const scale = 2 / size;
+  const isHolo = styleId === 'holographic';
+  const isClay = styleId === 'claymation';
+  const isStone = styleId === 'stone';
+  const isLowPoly = styleId === 'lowpoly';
+
+  if (cubes.length === 0) {
+    return (
+      <mesh>
+        <boxGeometry args={[1.2, 1.2, 1.2]} />
+        <meshStandardMaterial color="#26262a" wireframe />
+      </mesh>
+    );
+  }
 
   return (
     <group ref={groupRef} scale={scale}>
-      {cubes.map((c, i) => (
-        <mesh key={i} position={c.pos} castShadow receiveShadow>
+      <Instances limit={4096} range={cubes.length} castShadow receiveShadow>
+        {isClay ? (
+          <sphereGeometry args={[0.55, 12, 12]} />
+        ) : (
           <boxGeometry args={[1, 1, 1]} />
-          <meshStandardMaterial
+        )}
+        <meshStandardMaterial
+          wireframe={wireframe}
+          transparent={isHolo}
+          opacity={isHolo ? 0.65 : 1}
+          emissive={isHolo ? new THREE.Color('#7dd3fc') : new THREE.Color('#000000')}
+          emissiveIntensity={isHolo ? 0.5 : 0}
+          roughness={isStone ? 0.95 : isClay ? 0.85 : isLowPoly ? 0.7 : 0.5}
+          metalness={isStone ? 0.1 : 0}
+          flatShading={isLowPoly}
+        />
+        {cubes.map((c, i) => (
+          <Instance
+            key={i}
+            position={c.pos}
             color={c.color}
-            wireframe={wireframe}
-            transparent={styleId === 'holographic'}
-            opacity={styleId === 'holographic' ? 0.6 : 1}
-            emissive={styleId === 'holographic' ? '#7dd3fc' : '#000000'}
-            emissiveIntensity={styleId === 'holographic' ? 0.4 : 0}
+            scale={[1, 1, c.depth]}
           />
-        </mesh>
-      ))}
+        ))}
+      </Instances>
     </group>
   );
 }

@@ -13,6 +13,10 @@ type Snapshot = Uint8ClampedArray;
 type State = {
   size: 16 | 32 | 64;
   pixels: Uint8ClampedArray;
+  // Bump на каждой мутации pixels. Uint8ClampedArray мутируется in-place,
+  // ссылка не меняется — без version useEffect/useMemo деп-чек пропускает обновления
+  // и канвас/3D-сцена не перерисовываются во время рисования.
+  version: number;
   history: Snapshot[];
   future: Snapshot[];
   tool: Tool;
@@ -59,6 +63,7 @@ const HISTORY_LIMIT = 50;
 export const useEditor = create<State & Actions>((set, get) => ({
   size: 32,
   pixels: makeBuffer(32),
+  version: 0,
   history: [],
   future: [],
   tool: 'brush',
@@ -75,7 +80,7 @@ export const useEditor = create<State & Actions>((set, get) => ({
   currentModel: null,
 
   setSize: (s) => {
-    set({ size: s, pixels: makeBuffer(s), history: [], future: [] });
+    set({ size: s, pixels: makeBuffer(s), version: get().version + 1, history: [], future: [] });
   },
   setTool: (t) => set({ tool: t }),
   setColor: (c) => set({ color: c }),
@@ -121,7 +126,7 @@ export const useEditor = create<State & Actions>((set, get) => ({
       next[i + 2] = b;
       next[i + 3] = 255;
     }
-    set({ pixels: next });
+    set({ pixels: next, version: get().version + 1 });
   },
 
   pushHistory: () => {
@@ -133,33 +138,35 @@ export const useEditor = create<State & Actions>((set, get) => ({
   },
 
   undo: () => {
-    const { history, future, pixels } = get();
+    const { history, future, pixels, version } = get();
     if (history.length === 0) return;
     const prev = history[history.length - 1]!;
     const newHistory = history.slice(0, -1);
     set({
       history: newHistory,
       future: [...future, new Uint8ClampedArray(pixels)],
-      pixels: new Uint8ClampedArray(prev)
+      pixels: new Uint8ClampedArray(prev),
+      version: version + 1
     });
   },
 
   redo: () => {
-    const { history, future, pixels } = get();
+    const { history, future, pixels, version } = get();
     if (future.length === 0) return;
     const next = future[future.length - 1]!;
     const newFuture = future.slice(0, -1);
     set({
       history: [...history, new Uint8ClampedArray(pixels)],
       future: newFuture,
-      pixels: new Uint8ClampedArray(next)
+      pixels: new Uint8ClampedArray(next),
+      version: version + 1
     });
   },
 
   clear: () => {
-    const { size } = get();
+    const { size, version } = get();
     get().pushHistory();
-    set({ pixels: makeBuffer(size) });
+    set({ pixels: makeBuffer(size), version: version + 1 });
   },
 
   loadPixelData: (size, flat) => {
@@ -174,10 +181,10 @@ export const useEditor = create<State & Actions>((set, get) => ({
       buf[j + 3] = px[3] ?? 0;
     }
     const validSize: 16 | 32 | 64 = size <= 16 ? 16 : size <= 32 ? 32 : 64;
-    set({ size: validSize, pixels: buf, history: [], future: [] });
+    set({ size: validSize, pixels: buf, version: get().version + 1, history: [], future: [] });
   },
 
-  replacePixels: (next) => set({ pixels: next })
+  replacePixels: (next) => set({ pixels: next, version: get().version + 1 })
 }));
 
 export function pixelsToFlat(buf: Uint8ClampedArray): number[][] {

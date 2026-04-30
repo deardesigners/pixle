@@ -29,6 +29,7 @@ export function PixelCanvas() {
   const {
     size,
     pixels,
+    version,
     tool,
     color,
     brushSize,
@@ -85,7 +86,9 @@ export function PixelCanvas() {
         ctx.stroke();
       }
     }
-  }, [pixels, size]);
+    // version в зависимостях — pixels мутируется in-place, без version
+    // useCallback не пересоздаётся, useEffect не запускается, канвас не редрашится.
+  }, [pixels, size, version]);
 
   useEffect(() => {
     const c = canvasRef.current;
