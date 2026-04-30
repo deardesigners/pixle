@@ -7,12 +7,9 @@ import {
   Pipette,
   Undo2,
   Redo2,
-  Trash2,
-  Sparkles,
-  ImagePlus
+  Trash2
 } from 'lucide-react';
 import { useEditor, type Tool } from '@/lib/store';
-import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
 import { Tooltip } from '@/components/ui/tooltip';
 import { ColorPalette } from './ColorPalette';
@@ -25,23 +22,8 @@ const TOOLS: Array<{ id: Tool; label: string; Icon: typeof Brush; key: string }>
   { id: 'eyedropper', label: 'Eyedropper (I)', Icon: Pipette, key: 'I' }
 ];
 
-export function Toolbar({ onGenerate, hasHiRes = false }: { onGenerate: () => void; hasHiRes?: boolean }) {
-  const {
-    size,
-    setSize,
-    tool,
-    setTool,
-    brushSize,
-    setBrushSize,
-    undo,
-    redo,
-    clear,
-    pixels,
-    generationStatus
-  } = useEditor();
-
-  const isEmpty = pixels.every((v, i) => (i % 4 === 3 ? v === 0 : true));
-  const generating = generationStatus === 'pending' || generationStatus === 'polling';
+export function Toolbar() {
+  const { size, setSize, tool, setTool, brushSize, setBrushSize, undo, redo, clear } = useEditor();
 
   return (
     <div className="cs-card px-6 py-5 flex flex-wrap items-center gap-x-6 gap-y-4">
@@ -124,27 +106,6 @@ export function Toolbar({ onGenerate, hasHiRes = false }: { onGenerate: () => vo
         </Tooltip>
       </div>
 
-      {hasHiRes && (
-        <div className="ml-auto">
-          <Button
-            variant="default"
-            onClick={onGenerate}
-            disabled={isEmpty || generating}
-          >
-            {generating ? (
-              <>
-                <span className="flex gap-1"><span className="ai-dot" /><span className="ai-dot" /><span className="ai-dot" /></span>
-                <span>Rendering</span>
-              </>
-            ) : (
-              <>
-                <Sparkles className="h-[18px] w-[18px]" />
-                Hi-res render
-              </>
-            )}
-          </Button>
-        </div>
-      )}
     </div>
   );
 }

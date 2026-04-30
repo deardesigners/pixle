@@ -14,18 +14,6 @@ export const PixelDataSchema = z.object({
   pixels: z.array(z.tuple([z.number(), z.number(), z.number(), z.number()]))
 });
 
-export const GenerateBodySchema = z.object({
-  imageBase64: z.string().min(64),
-  styleId: StyleIdSchema,
-  clientId: z.string().min(8),
-  pixelData: PixelDataSchema
-});
-
-export const FinalizeBodySchema = z.object({
-  generationId: z.string().min(4),
-  thumbnailBase64: z.string().min(64)
-});
-
 export const LikeBodySchema = z.object({
   clientId: z.string().min(8)
 });
@@ -39,6 +27,5 @@ export const GalleryQuerySchema = z.object({
   limit: z.coerce.number().int().min(1).max(48).default(24)
 });
 
-export type GenerateBody = z.infer<typeof GenerateBodySchema>;
 export type PixelData = z.infer<typeof PixelDataSchema>;
 export type StyleId = z.infer<typeof StyleIdSchema>;

@@ -2,7 +2,7 @@
 
 import Image from 'next/image';
 import { useState, useTransition } from 'react';
-import { Heart, Recycle, Maximize2, Download } from 'lucide-react';
+import { Heart, Recycle, Maximize2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
@@ -18,7 +18,7 @@ export type GalleryItem = {
   style_id: StyleId;
   preview_url: string;
   thumbnail_url: string;
-  model_url: string;
+  pixel_data: { size: number; pixels: number[][] };
   like_count: number;
   liked_by_me: boolean;
 };
@@ -65,7 +65,7 @@ export function GalleryCard({
   };
 
   const thumb = item.thumbnail_url || item.preview_url;
-  const hasModel = item.model_url && !item.model_url.startsWith('demo://');
+  const hasModel = item.pixel_data && item.pixel_data.pixels?.length > 0;
 
   return (
     <div className="bg-panel border border-border rounded-xl overflow-hidden group">
@@ -87,7 +87,7 @@ export function GalleryCard({
         )}
         {showPreview && hasModel && (
           <div className="absolute inset-0">
-            <ModelPreview url={item.model_url} />
+            <ModelPreview pixelData={item.pixel_data} />
           </div>
         )}
         <Badge className="absolute top-2 left-2">
@@ -103,26 +103,12 @@ export function GalleryCard({
           <DialogContent className="p-0">
             <div className="aspect-square w-full bg-bg">
               {hasModel ? (
-                <ModelPreview url={item.model_url} />
+                <ModelPreview pixelData={item.pixel_data} />
               ) : thumb ? (
                 <Image src={thumb} alt={preset.label} fill className="object-contain" unoptimized />
               ) : null}
             </div>
             <div className="p-4 flex items-center gap-2">
-              <Button
-                variant="secondary"
-                size="sm"
-                onClick={() => {
-                  if (!hasModel) return toast('Demo mode: .glb недоступен');
-                  const a = document.createElement('a');
-                  a.href = item.model_url;
-                  a.download = `${item.id}.glb`;
-                  a.click();
-                }}
-              >
-                <Download className="h-4 w-4" />
-                .glb
-              </Button>
               <Button variant="default" size="sm" onClick={onRemix}>
                 <Recycle className="h-4 w-4" />
                 Remix

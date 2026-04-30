@@ -4,7 +4,6 @@ import { create } from 'zustand';
 import type { StyleId } from './validation';
 
 export type Tool = 'brush' | 'eraser' | 'fill' | 'eyedropper';
-export type GenerationStatus = 'idle' | 'pending' | 'polling' | 'ready' | 'error';
 
 export type PressureMap = { size: boolean; alpha: boolean; jitter: boolean };
 
@@ -27,10 +26,6 @@ type State = {
   pressureDetected: boolean;
   livePressure: number;
   currentStyle: StyleId;
-  generationStatus: GenerationStatus;
-  generationProgress: number;
-  generationError: string | null;
-  currentModel: { url: string; generationId: string } | null;
 };
 
 type Actions = {
@@ -43,8 +38,6 @@ type Actions = {
   setPressureDetected: (v: boolean) => void;
   setLivePressure: (v: number) => void;
   setStyle: (s: StyleId) => void;
-  setStatus: (s: GenerationStatus, progress?: number, error?: string | null) => void;
-  setCurrentModel: (m: { url: string; generationId: string } | null) => void;
   paintPixel: (x: number, y: number, rgba: [number, number, number, number]) => void;
   pushHistory: () => void;
   undo: () => void;
@@ -74,10 +67,6 @@ export const useEditor = create<State & Actions>((set, get) => ({
   pressureDetected: false,
   livePressure: 0,
   currentStyle: 'voxel',
-  generationStatus: 'idle',
-  generationProgress: 0,
-  generationError: null,
-  currentModel: null,
 
   setSize: (s) => {
     set({ size: s, pixels: makeBuffer(s), version: get().version + 1, history: [], future: [] });
@@ -91,13 +80,6 @@ export const useEditor = create<State & Actions>((set, get) => ({
   setPressureDetected: (v) => set({ pressureDetected: v, pressureEnabled: v || get().pressureEnabled }),
   setLivePressure: (v) => set({ livePressure: v }),
   setStyle: (s) => set({ currentStyle: s }),
-  setStatus: (s, progress, error) =>
-    set({
-      generationStatus: s,
-      generationProgress: progress ?? (s === 'ready' ? 100 : 0),
-      generationError: error ?? null
-    }),
-  setCurrentModel: (m) => set({ currentModel: m }),
 
   paintPixel: (x, y, [r, g, b, a]) => {
     const { size, pixels } = get();

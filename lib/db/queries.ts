@@ -11,31 +11,23 @@ export async function createGeneration(args: {
   styleId: StyleId;
   pixelData: { size: number; pixels: number[][] };
   previewUrl: string;
-  meshyTaskId: string | null;
-  modelUrl: string;
-  status: string;
+  thumbnailUrl: string;
+  status?: string;
 }): Promise<void> {
+  // model_url и meshy_task_id оставлены пустыми — наследие старой схемы.
+  // Галерея рендерит 3D из pixel_data на лету, .glb-файлы не нужны.
   await db`
-    INSERT INTO generations (id, client_id, style_id, pixel_data, preview_url, model_url, meshy_task_id, status)
+    INSERT INTO generations (id, client_id, style_id, pixel_data, preview_url, thumbnail_url, status)
     VALUES (
       ${args.id},
       ${args.clientId},
       ${args.styleId},
       ${JSON.stringify(args.pixelData)}::jsonb,
       ${args.previewUrl},
-      ${args.modelUrl},
-      ${args.meshyTaskId},
-      ${args.status}
+      ${args.thumbnailUrl},
+      ${args.status ?? 'ready'}
     )
   `;
-}
-
-export async function setGenerationModel(id: string, modelUrl: string, status = 'ready'): Promise<void> {
-  await db`UPDATE generations SET model_url = ${modelUrl}, status = ${status} WHERE id = ${id}`;
-}
-
-export async function setGenerationThumbnail(id: string, thumbnailUrl: string): Promise<void> {
-  await db`UPDATE generations SET thumbnail_url = ${thumbnailUrl} WHERE id = ${id}`;
 }
 
 export async function getGeneration(id: string): Promise<GenerationRow | null> {

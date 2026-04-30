@@ -4,8 +4,8 @@ import { useEditor } from '@/lib/store';
 import { cn } from '@/lib/utils';
 
 export function StyleSelector() {
-  const { currentStyle, setStyle, generationStatus } = useEditor();
-  const locked = generationStatus === 'pending' || generationStatus === 'polling';
+  const { currentStyle, setStyle } = useEditor();
+  const locked = false;
   return (
     <div className="cs-card p-6">
       <div className="flex items-center justify-between px-2 pb-4">
