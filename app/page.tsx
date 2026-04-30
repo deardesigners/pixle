@@ -173,30 +173,29 @@ function Studio() {
 
   return (
     <div className="min-h-screen flex flex-col">
-      <header className="sticky top-0 z-30 bg-bg/85 backdrop-blur-md border-b border-border">
-        <div className="px-6 h-14 flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <div className="font-display font-semibold text-[15px] tracking-tightest leading-none flex items-baseline gap-2">
+      <header className="sticky top-3 z-30 mx-3 cs-capsule rounded-pill">
+        <div className="h-[60px] px-5 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="font-display font-bold text-[18px] tracking-tightest leading-none flex items-baseline gap-1.5 text-accent-bold">
               <span>PXL</span>
-              <span className="text-muted">→</span>
+              <span className="opacity-50">→</span>
               <span>3D</span>
             </div>
-            <span className="label hidden sm:inline">Studio</span>
+            <span className="cs-label hidden sm:inline">Studio</span>
             {config && !config.hasMeshy && (
               <Tooltip content={
-                <div className="max-w-[260px]">
-                  Live 3D работает. Hi-res Meshy-рендер требует <span className="mono">MESHY_API_KEY</span> в Vercel → Settings → Env Vars.
+                <div className="max-w-[260px] text-[12px] leading-snug">
+                  Live 3D работает. Hi-res Meshy-рендер требует <span className="font-mono">MESHY_API_KEY</span> в Vercel → Settings → Env Vars.
                 </div>
               }>
-                <span className="ml-2 inline-flex items-center gap-1.5 h-6 px-2.5 rounded-pill border border-border-strong text-[10px] mono uppercase tracking-widest cursor-help">
-                  <span className="w-1.5 h-1.5 rounded-full bg-accent" />
+                <span className="ml-1 inline-flex items-center gap-1.5 h-7 px-3 rounded-pill bg-accent text-accent-bold text-[11px] font-semibold uppercase tracking-wider cursor-help">
                   Demo
                 </span>
               </Tooltip>
             )}
           </div>
           <Link href="/gallery">
-            <Button variant="ghost" size="sm">
+            <Button variant="secondary" size="sm">
               <GalleryHorizontal className="h-3.5 w-3.5" />
               Gallery
             </Button>
@@ -204,17 +203,17 @@ function Studio() {
         </div>
       </header>
 
-      <main className="flex-1 flex flex-col md:grid md:grid-cols-2 gap-3 p-3">
-        <section className="flex flex-col gap-3">
+      <main className="flex-1 flex flex-col md:grid md:grid-cols-2 gap-4 p-4 pt-3">
+        <section className="flex flex-col gap-4">
           <Toolbar onGenerate={onGenerate} />
-          <div className="relative flex-1 bg-panel border border-border rounded-2xl flex items-center justify-center min-h-[400px] no-touch overflow-hidden">
-            <span className="absolute top-3 left-3 label z-10">Editor · {size}×{size}</span>
+          <div className="relative flex-1 cs-card flex items-center justify-center min-h-[400px] no-touch overflow-hidden p-6">
+            <span className="absolute top-5 left-6 cs-label z-10">Editor · {size}×{size}</span>
             <PixelCanvas />
           </div>
           <PressurePanel />
         </section>
 
-        <section className="flex flex-col gap-3">
+        <section className="flex flex-col gap-4">
           <StyleSelector />
           <div className="flex-1 min-h-[400px]">
             <ModelViewer />

@@ -15,16 +15,16 @@ export function PressurePanel() {
   if (!pressureDetected && !pressureEnabled) return null;
 
   return (
-    <div className="bg-panel border border-border rounded-2xl p-3 space-y-3">
+    <div className="cs-card p-5 space-y-4">
       <div className="flex items-center justify-between">
-        <span className="label">Pressure</span>
+        <span className="cs-label">Pressure</span>
         <button
           onClick={() => setPressureEnabled(!pressureEnabled)}
           className={cn(
-            'h-6 px-3 rounded-pill border text-[11px] mono uppercase tracking-widest transition-colors',
+            'h-7 px-4 rounded-pill text-[11px] font-bold uppercase tracking-wider transition-all',
             pressureEnabled
-              ? 'bg-accent text-accent-fg border-accent'
-              : 'border-border-strong text-muted hover:text-text'
+              ? 'bg-accent text-accent-bold'
+              : 'bg-text/5 text-text/50 hover:bg-text/10'
           )}
         >
           {pressureEnabled ? 'On' : 'Off'}
@@ -37,10 +37,10 @@ export function PressurePanel() {
             onClick={() => togglePressureChannel(k)}
             disabled={!pressureEnabled}
             className={cn(
-              'h-7 px-3 rounded-pill border text-[12px] tracking-tight transition-colors disabled:opacity-30',
+              'h-8 px-3.5 rounded-pill border-[1.5px] text-[13px] font-semibold tracking-tight transition-colors disabled:opacity-30',
               pressureMap[k]
-                ? 'bg-text text-bg border-text'
-                : 'border-border-strong text-text hover:bg-elev'
+                ? 'bg-text text-white border-text'
+                : 'bg-transparent border-text/15 text-text hover:border-text'
             )}
           >
             {k === 'alpha' ? 'Opacity' : k.charAt(0).toUpperCase() + k.slice(1)}
@@ -48,11 +48,11 @@ export function PressurePanel() {
         ))}
       </div>
       <div>
-        <div className="flex items-center justify-between mb-1.5">
-          <span className="label">Live</span>
-          <span className="mono text-[10px] text-muted">{livePressure.toFixed(2)}</span>
+        <div className="flex items-center justify-between mb-2">
+          <span className="cs-label">Live</span>
+          <span className="text-[12px] font-semibold tabular-nums">{livePressure.toFixed(2)}</span>
         </div>
-        <div className="h-px bg-border-strong overflow-hidden">
+        <div className="h-1 bg-text/10 rounded-full overflow-hidden">
           <div
             className="h-full bg-accent transition-[width] duration-75"
             style={{ width: `${Math.round(livePressure * 100)}%` }}

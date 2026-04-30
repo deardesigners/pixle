@@ -70,17 +70,25 @@ export function ModelViewer({ onScreenshot }: Props) {
   };
 
   return (
-    <div className="relative w-full h-full bg-panel rounded-2xl border border-border overflow-hidden">
+    <div className="relative w-full h-full cs-card overflow-hidden">
       <Canvas
-        gl={{ preserveDrawingBuffer: true, antialias: true }}
+        gl={{
+          preserveDrawingBuffer: true,
+          antialias: true,
+          // NoToneMapping сохраняет цвета 1:1 с пикселями — без него ACESFilmic
+          // тонемэппинг в R3F бледнит насыщенные цвета.
+          toneMapping: THREE.NoToneMapping
+        }}
         camera={{ position: [3, 2.5, 3], fov: 45 }}
         shadows
+        flat
       >
-        <color attach="background" args={['#0a0a0b']} />
-        <ambientLight intensity={0.4} />
-        <directionalLight position={[5, 5, 5]} intensity={1.1} castShadow />
+        <color attach="background" args={['#F3F0FF']} />
+        <ambientLight intensity={0.85} />
+        <directionalLight position={[4, 6, 4]} intensity={0.4} castShadow />
         <Suspense fallback={null}>
-          <Environment preset="studio" />
+          {/* Environment даёт лёгкий fill-light без отбеливания насыщенных цветов */}
+          <Environment preset="apartment" environmentIntensity={0.15} background={false} />
           {currentModel && !currentModel.url.startsWith('demo://') ? (
             <ModelLoader
               url={currentModel.url}
@@ -114,32 +122,32 @@ export function ModelViewer({ onScreenshot }: Props) {
         error={generationError}
       />
 
-      <div className="absolute top-3 left-3 label">Render</div>
+      <div className="absolute top-5 left-5 cs-label">Render</div>
 
-      <div className="absolute top-3 right-3 flex flex-col gap-1.5">
+      <div className="absolute top-4 right-4 flex flex-col gap-1.5">
         <button
           onClick={() => setResetSignal((s) => s + 1)}
           aria-label="Reset camera"
-          className="h-8 w-8 inline-flex items-center justify-center rounded-pill border border-border-strong bg-bg/50 backdrop-blur text-text hover:bg-text hover:text-bg transition-colors"
+          className="h-9 w-9 inline-flex items-center justify-center rounded-full border-[1.5px] border-text/15 bg-white/70 backdrop-blur text-text hover:border-text hover:bg-text hover:text-white transition-colors"
         >
-          <RefreshCw className="h-3.5 w-3.5" />
+          <RefreshCw className="h-4 w-4" />
         </button>
         <button
           onClick={() => setWireframe((w) => !w)}
           aria-label="Toggle wireframe"
           className={cn(
-            'h-8 w-8 inline-flex items-center justify-center rounded-pill border bg-bg/50 backdrop-blur transition-colors',
-            wireframe ? 'border-accent bg-accent text-accent-fg' : 'border-border-strong text-text hover:bg-text hover:text-bg'
+            'h-9 w-9 inline-flex items-center justify-center rounded-full border-[1.5px] bg-white/70 backdrop-blur transition-colors',
+            wireframe ? 'border-text bg-accent text-accent-bold' : 'border-text/15 text-text hover:border-text hover:bg-text hover:text-white'
           )}
         >
-          <Layers className="h-3.5 w-3.5" />
+          <Layers className="h-4 w-4" />
         </button>
       </div>
 
-      <div className="absolute bottom-3 left-3 right-3 flex flex-wrap gap-1.5">
+      <div className="absolute bottom-4 left-4 right-4 flex flex-wrap gap-2">
         <Button variant="secondary" size="sm" onClick={handleDownload} disabled={!currentModel}>
           <Download className="h-3.5 w-3.5" />
-          <span className="mono text-[11px]">.glb</span>
+          .glb
         </Button>
         <Button variant="secondary" size="sm" onClick={handleSave} disabled={!currentModel || savedToGallery}>
           <Save className="h-3.5 w-3.5" />
@@ -384,11 +392,13 @@ function LivePixelModel({
           <meshStandardMaterial
             wireframe={wireframe}
             transparent={isHolo}
-            opacity={isHolo ? 0.65 : 1}
+            opacity={isHolo ? 0.7 : 1}
             emissive={isHolo ? new THREE.Color('#7dd3fc') : new THREE.Color('#000000')}
-            emissiveIntensity={isHolo ? 0.5 : 0}
-            roughness={isStone ? 0.95 : isClay ? 0.85 : isLowPoly ? 0.7 : 0.5}
-            metalness={isStone ? 0.1 : 0}
+            emissiveIntensity={isHolo ? 0.4 : 0}
+            // Высокая roughness + 0 metalness = чистый Lambert-look без specular,
+            // цвета сохраняют насыщенность под любым окружением.
+            roughness={isHolo ? 0.6 : 0.95}
+            metalness={0}
             flatShading={isLowPoly}
           />
           {cubes.map((c, i) => (

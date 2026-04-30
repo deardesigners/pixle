@@ -53,10 +53,11 @@ export function PixelCanvas() {
     ctx.imageSmoothingEnabled = false;
     ctx.clearRect(0, 0, DISPLAY_PX, DISPLAY_PX);
 
+    // Светлый чекер: cream + лёгкий accent-light для альфа-зон
     const cell = DISPLAY_PX / 16;
     for (let y = 0; y < 16; y++) {
       for (let x = 0; x < 16; x++) {
-        ctx.fillStyle = (x + y) % 2 === 0 ? '#1f1f23' : '#15151a';
+        ctx.fillStyle = (x + y) % 2 === 0 ? '#FFFFFF' : '#E6EBF6';
         ctx.fillRect(x * cell, y * cell, cell, cell);
       }
     }
@@ -73,7 +74,7 @@ export function PixelCanvas() {
     }
 
     if (size <= 32) {
-      ctx.strokeStyle = 'rgba(255,255,255,0.05)';
+      ctx.strokeStyle = 'rgba(2,2,10,0.06)';
       ctx.lineWidth = 1;
       for (let i = 1; i < size; i++) {
         ctx.beginPath();
@@ -354,7 +355,7 @@ export function PixelCanvas() {
           ref={canvasRef}
           width={DISPLAY_PX}
           height={DISPLAY_PX}
-          className={`pixel-canvas bg-black rounded-md shadow-2xl ${cursorClass}`}
+          className={`pixel-canvas bg-white rounded-2xl shadow-bold ${cursorClass}`}
           style={{ width: 'min(80vmin, 600px)', height: 'min(80vmin, 600px)' }}
           onPointerDown={onPointerDown}
           onPointerMove={onPointerMove}

@@ -44,18 +44,18 @@ export function Toolbar({ onGenerate }: { onGenerate: () => void }) {
   const generating = generationStatus === 'pending' || generationStatus === 'polling';
 
   return (
-    <div className="flex flex-wrap gap-2 items-center px-3 py-2 bg-panel border border-border rounded-2xl">
-      <div className="flex items-center gap-1">
-        <span className="label pr-1">Size</span>
+    <div className="flex flex-wrap gap-3 items-center px-5 py-4 cs-card">
+      <div className="flex items-center gap-1.5">
+        <span className="cs-label pr-1">Size</span>
         {[16, 32, 64].map((s) => (
           <button
             key={s}
             onClick={() => setSize(s as 16 | 32 | 64)}
             className={cn(
-              'h-7 px-2.5 mono text-[11px] leading-none rounded-pill border transition-colors',
+              'h-8 px-3 text-[13px] font-semibold leading-none rounded-pill transition-colors border-[1.5px]',
               size === s
-                ? 'bg-text text-bg border-text'
-                : 'border-border-strong text-muted hover:text-text hover:bg-elev'
+                ? 'bg-text text-white border-text'
+                : 'bg-transparent border-text/15 text-text hover:border-text'
             )}
           >
             {s}
@@ -63,7 +63,7 @@ export function Toolbar({ onGenerate }: { onGenerate: () => void }) {
         ))}
       </div>
 
-      <div className="w-px h-5 bg-border mx-1" />
+      <div className="w-px h-6 bg-text/10 mx-1" />
 
       <div className="flex items-center gap-1">
         {TOOLS.map(({ id, label, Icon }) => (
@@ -72,26 +72,26 @@ export function Toolbar({ onGenerate }: { onGenerate: () => void }) {
               onClick={() => setTool(id)}
               aria-label={label}
               className={cn(
-                'h-8 w-8 inline-flex items-center justify-center rounded-pill border transition-colors',
+                'h-9 w-9 inline-flex items-center justify-center rounded-pill transition-colors border-[1.5px]',
                 tool === id
-                  ? 'bg-text text-bg border-text'
-                  : 'border-transparent text-text hover:bg-elev'
+                  ? 'bg-text text-white border-text'
+                  : 'border-transparent text-text hover:bg-text/5'
               )}
             >
-              <Icon className="h-3.5 w-3.5" />
+              <Icon className="h-4 w-4" />
             </button>
           </Tooltip>
         ))}
       </div>
 
-      <div className="w-px h-5 bg-border mx-1" />
+      <div className="w-px h-6 bg-text/10 mx-1" />
 
       <ColorPalette />
 
-      <div className="w-px h-5 bg-border mx-1" />
+      <div className="w-px h-6 bg-text/10 mx-1" />
 
-      <div className="flex items-center gap-2 min-w-[120px]">
-        <span className="label">Brush</span>
+      <div className="flex items-center gap-2.5 min-w-[140px]">
+        <span className="cs-label">Brush</span>
         <Slider
           value={[brushSize]}
           min={1}
@@ -99,25 +99,25 @@ export function Toolbar({ onGenerate }: { onGenerate: () => void }) {
           step={1}
           onValueChange={(v) => setBrushSize((v[0] ?? 1) as 1 | 2 | 3 | 4)}
         />
-        <span className="mono text-[11px] text-muted w-3 text-right">{brushSize}</span>
+        <span className="text-[13px] font-semibold w-3 text-right">{brushSize}</span>
       </div>
 
-      <div className="w-px h-5 bg-border mx-1" />
+      <div className="w-px h-6 bg-text/10 mx-1" />
 
       <div className="flex items-center gap-0.5">
         <Tooltip content="Undo · ⌘Z">
-          <button onClick={undo} aria-label="Undo" className="h-8 w-8 inline-flex items-center justify-center rounded-pill text-text hover:bg-elev transition-colors">
-            <Undo2 className="h-3.5 w-3.5" />
+          <button onClick={undo} aria-label="Undo" className="h-9 w-9 inline-flex items-center justify-center rounded-pill text-text hover:bg-text/5 transition-colors">
+            <Undo2 className="h-4 w-4" />
           </button>
         </Tooltip>
         <Tooltip content="Redo · ⌘⇧Z">
-          <button onClick={redo} aria-label="Redo" className="h-8 w-8 inline-flex items-center justify-center rounded-pill text-text hover:bg-elev transition-colors">
-            <Redo2 className="h-3.5 w-3.5" />
+          <button onClick={redo} aria-label="Redo" className="h-9 w-9 inline-flex items-center justify-center rounded-pill text-text hover:bg-text/5 transition-colors">
+            <Redo2 className="h-4 w-4" />
           </button>
         </Tooltip>
         <Tooltip content="Clear">
-          <button onClick={clear} aria-label="Clear" className="h-8 w-8 inline-flex items-center justify-center rounded-pill text-muted hover:text-text hover:bg-elev transition-colors">
-            <Trash2 className="h-3.5 w-3.5" />
+          <button onClick={clear} aria-label="Clear" className="h-9 w-9 inline-flex items-center justify-center rounded-pill text-text/50 hover:text-text hover:bg-text/5 transition-colors">
+            <Trash2 className="h-4 w-4" />
           </button>
         </Tooltip>
       </div>
@@ -125,18 +125,17 @@ export function Toolbar({ onGenerate }: { onGenerate: () => void }) {
       <div className="ml-auto">
         <Button
           variant="default"
-          size="md"
           onClick={onGenerate}
           disabled={isEmpty || generating}
         >
           {generating ? (
             <>
-              <span className="flex gap-0.5"><span className="ai-dot" style={{background:'currentColor'}}/><span className="ai-dot" style={{background:'currentColor'}}/><span className="ai-dot" style={{background:'currentColor'}}/></span>
+              <span className="flex gap-1"><span className="ai-dot" /><span className="ai-dot" /><span className="ai-dot" /></span>
               <span>Rendering</span>
             </>
           ) : (
             <>
-              <Sparkles className="h-3.5 w-3.5" />
+              <Sparkles className="h-4 w-4" />
               Render
             </>
           )}
