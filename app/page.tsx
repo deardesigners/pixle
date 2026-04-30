@@ -1,6 +1,6 @@
 'use client';
 
-import { Suspense, useEffect, useRef } from 'react';
+import { Suspense, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Toolbar } from '@/components/editor/Toolbar';
@@ -9,11 +9,13 @@ import { PressurePanel } from '@/components/editor/PressurePanel';
 import { ModelViewer } from '@/components/viewer/ModelViewer';
 import { StyleSelector } from '@/components/viewer/StyleSelector';
 import { useEditor, pixelsToFlat } from '@/lib/store';
-import { TooltipProvider } from '@/components/ui/tooltip';
+import { Tooltip, TooltipProvider } from '@/components/ui/tooltip';
 import { Button } from '@/components/ui/button';
-import { ImageIcon, GalleryHorizontal } from 'lucide-react';
+import { ImageIcon, GalleryHorizontal, Info } from 'lucide-react';
 import { getClientId } from '@/lib/clientId';
 import { toast } from '@/components/Toaster';
+
+type AppConfig = { hasMeshy: boolean; hasBlob: boolean; hasPostgres: boolean };
 
 export default function HomePage() {
   return (
@@ -30,6 +32,7 @@ function Studio() {
   const router = useRouter();
   const remixId = params.get('remix');
   const remixHandled = useRef(false);
+  const [config, setConfig] = useState<AppConfig | null>(null);
 
   const {
     pixels,
@@ -39,6 +42,13 @@ function Studio() {
     setCurrentModel,
     loadPixelData
   } = useEditor();
+
+  useEffect(() => {
+    fetch('/api/config')
+      .then((r) => r.json())
+      .then((c: AppConfig) => setConfig(c))
+      .catch(() => setConfig({ hasMeshy: false, hasBlob: false, hasPostgres: false }));
+  }, []);
 
   // remix-флоу
   useEffect(() => {
@@ -117,7 +127,6 @@ function Studio() {
       if (data.demoMode || !data.taskId) {
         setCurrentModel({ url: 'demo://voxel', generationId: data.generationId });
         setStatus('ready', 100);
-        toast('Demo mode: показан voxel-фолбэк (нет MESHY_API_KEY)');
         return;
       }
 
@@ -164,20 +173,31 @@ function Studio() {
 
   return (
     <div className="min-h-screen flex flex-col">
-      <header className="sticky top-0 z-30 bg-bg/80 backdrop-blur border-b border-border bg-aurora">
-        <div className="px-4 py-3 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="relative">
-              <ImageIcon className="h-5 w-5 text-accent" />
-              <div className="absolute inset-0 blur-md bg-accent/40 rounded-full -z-10" />
+      <header className="sticky top-0 z-30 bg-bg/85 backdrop-blur-md border-b border-border">
+        <div className="px-6 h-14 flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <div className="font-display font-semibold text-[15px] tracking-tightest leading-none flex items-baseline gap-2">
+              <span>PXL</span>
+              <span className="text-muted">→</span>
+              <span>3D</span>
             </div>
-            <h1 className="font-heading font-semibold text-lg tracking-tight">
-              Pixel-to-3D <span className="bg-gradient-to-r from-accent to-accent2 bg-clip-text text-transparent">Studio</span>
-            </h1>
+            <span className="label hidden sm:inline">Studio</span>
+            {config && !config.hasMeshy && (
+              <Tooltip content={
+                <div className="max-w-[260px]">
+                  Live 3D работает. Hi-res Meshy-рендер требует <span className="mono">MESHY_API_KEY</span> в Vercel → Settings → Env Vars.
+                </div>
+              }>
+                <span className="ml-2 inline-flex items-center gap-1.5 h-6 px-2.5 rounded-pill border border-border-strong text-[10px] mono uppercase tracking-widest cursor-help">
+                  <span className="w-1.5 h-1.5 rounded-full bg-accent" />
+                  Demo
+                </span>
+              </Tooltip>
+            )}
           </div>
           <Link href="/gallery">
-            <Button variant="secondary" size="sm">
-              <GalleryHorizontal className="h-4 w-4" />
+            <Button variant="ghost" size="sm">
+              <GalleryHorizontal className="h-3.5 w-3.5" />
               Gallery
             </Button>
           </Link>
@@ -187,7 +207,8 @@ function Studio() {
       <main className="flex-1 flex flex-col md:grid md:grid-cols-2 gap-3 p-3">
         <section className="flex flex-col gap-3">
           <Toolbar onGenerate={onGenerate} />
-          <div className="flex-1 bg-panel border border-border rounded-xl flex items-center justify-center min-h-[400px] no-touch">
+          <div className="relative flex-1 bg-panel border border-border rounded-2xl flex items-center justify-center min-h-[400px] no-touch overflow-hidden">
+            <span className="absolute top-3 left-3 label z-10">Editor · {size}×{size}</span>
             <PixelCanvas />
           </div>
           <PressurePanel />

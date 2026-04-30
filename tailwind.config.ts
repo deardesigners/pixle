@@ -6,28 +6,32 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        // ui-ux-pro-max → "Drawing & Sketching Canvas": canvas purple + tool teal на тёмном.
-        bg: '#1C1917',
-        panel: '#262321',
-        border: 'rgba(255,255,255,0.08)',
-        muted: '#94A3B8',
-        accent: '#7C3AED',
-        accent2: '#0891B2',
-        secondary: '#8B5CF6'
+        // Кинематический контраст: глубокий чёрный + единственный жёлтый акцент
+        // (CopySight #fff07c). Никаких градиентов и неона — sophisticated tool.
+        bg: '#0A0A0A',
+        panel: '#111110',
+        elev: '#1a1a18',
+        border: 'rgba(255,255,255,0.06)',
+        'border-strong': 'rgba(255,255,255,0.12)',
+        muted: '#6B6968',
+        text: '#F5F5F2',
+        accent: '#FFF07C',
+        'accent-fg': '#0A0A0A'
       },
       fontFamily: {
-        // ui-ux-pro-max → "Minimalist Portfolio": Space Grotesk for headings, Archivo for body.
-        sans: ['Archivo', 'system-ui', '-apple-system', 'sans-serif'],
-        heading: ['"Space Grotesk"', 'system-ui', 'sans-serif'],
-        body: ['Archivo', 'system-ui', 'sans-serif']
+        sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
+        display: ['"Space Grotesk"', 'Inter', 'sans-serif'],
+        mono: ['"JetBrains Mono"', '"SF Mono"', 'ui-monospace', 'monospace']
+      },
+      letterSpacing: {
+        tightest: '-0.04em',
+        tighter: '-0.025em'
+      },
+      borderRadius: {
+        pill: '9999px'
       },
       boxShadow: {
-        glow: '0 0 24px rgba(124, 58, 237, 0.35), 0 0 64px rgba(124, 58, 237, 0.15)',
-        'glow-soft': '0 0 32px rgba(124, 58, 237, 0.2)'
-      },
-      backgroundImage: {
-        aurora:
-          'radial-gradient(ellipse 80% 50% at 20% 0%, rgba(124,58,237,0.18) 0%, transparent 60%), radial-gradient(ellipse 60% 50% at 80% 0%, rgba(8,145,178,0.16) 0%, transparent 60%), radial-gradient(ellipse 100% 80% at 50% 100%, rgba(139,92,246,0.08) 0%, transparent 60%)'
+        glow: '0 0 0 1px rgba(255,240,124,0.25), 0 8px 32px rgba(255,240,124,0.12)'
       }
     }
   },

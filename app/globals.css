@@ -7,21 +7,37 @@
 }
 
 html, body {
-  background: #1C1917;
-  color: #F5F5F7;
-  font-family: 'Archivo', system-ui, -apple-system, sans-serif;
+  background: #0A0A0A;
+  color: #F5F5F2;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  font-feature-settings: 'cv11', 'ss01', 'ss03';
   height: 100%;
   margin: 0;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
   -webkit-tap-highlight-color: transparent;
-}
-
-h1, h2, h3, h4 {
-  font-family: 'Space Grotesk', system-ui, sans-serif;
-  letter-spacing: -0.02em;
 }
 
 * {
   box-sizing: border-box;
+}
+
+h1, h2, h3, h4 {
+  font-family: 'Space Grotesk', system-ui, sans-serif;
+  letter-spacing: -0.025em;
+  font-feature-settings: 'ss01', 'ss02';
+}
+
+/* Кинематический film-grain поверх всего — едва заметный, добавляет глубину */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 100;
+  opacity: 0.04;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%' height='100%' filter='url(%23n)' opacity='0.6'/></svg>");
+  mix-blend-mode: overlay;
 }
 
 .pixel-canvas {
@@ -33,38 +49,88 @@ h1, h2, h3, h4 {
   -webkit-user-select: none;
 }
 
-.no-touch {
-  touch-action: none;
-}
+.no-touch { touch-action: none; }
 
 .checker-bg {
   background-image:
-    linear-gradient(45deg, #1f1f23 25%, transparent 25%),
-    linear-gradient(-45deg, #1f1f23 25%, transparent 25%),
-    linear-gradient(45deg, transparent 75%, #1f1f23 75%),
-    linear-gradient(-45deg, transparent 75%, #1f1f23 75%);
+    linear-gradient(45deg, #161614 25%, transparent 25%),
+    linear-gradient(-45deg, #161614 25%, transparent 25%),
+    linear-gradient(45deg, transparent 75%, #161614 75%),
+    linear-gradient(-45deg, transparent 75%, #161614 75%);
   background-size: 16px 16px;
   background-position: 0 0, 0 8px, 8px -8px, -8px 0;
-  background-color: #15151a;
+  background-color: #0E0E0D;
 }
 
 .scrollbar-thin::-webkit-scrollbar { width: 6px; height: 6px; }
-.scrollbar-thin::-webkit-scrollbar-thumb { background: #303036; border-radius: 3px; }
+.scrollbar-thin::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 3px; }
 
-@keyframes pulse-soft {
-  0%, 100% { opacity: 0.6; }
-  50% { opacity: 1; }
+/* Mono utility для технических подписей и цифр */
+.mono {
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-feature-settings: 'zero', 'ss01';
+  letter-spacing: 0;
 }
 
-/* AI-native «typing» индикатор для прогресса генерации Meshy */
+.label {
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #6B6968;
+}
+
+/* Кнопка-pill в авторском стиле: outline + invert on hover */
+.pill-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 36px;
+  padding: 0 16px;
+  border-radius: 9999px;
+  border: 1px solid rgba(255,255,255,0.12);
+  background: transparent;
+  color: #F5F5F2;
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  transition: all 200ms ease;
+}
+.pill-btn:hover:not(:disabled) {
+  background: #F5F5F2;
+  color: #0A0A0A;
+  border-color: #F5F5F2;
+}
+.pill-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+.pill-btn-accent {
+  background: #FFF07C;
+  color: #0A0A0A;
+  border-color: #FFF07C;
+}
+.pill-btn-accent:hover:not(:disabled) {
+  background: #F5F5F2;
+  color: #0A0A0A;
+  border-color: #F5F5F2;
+}
+
+/* AI-native typing pulse (3 точки) */
 @keyframes ai-dot {
-  0%, 80%, 100% { opacity: 0.3; transform: scale(0.8); }
+  0%, 80%, 100% { opacity: 0.25; transform: scale(0.7); }
   40% { opacity: 1; transform: scale(1); }
 }
 .ai-dot {
-  width: 6px; height: 6px; border-radius: 9999px;
-  background: linear-gradient(135deg, #7C3AED, #0891B2);
+  width: 5px; height: 5px; border-radius: 9999px;
+  background: #FFF07C;
   animation: ai-dot 1.2s ease-in-out infinite;
 }
 .ai-dot:nth-child(2) { animation-delay: 0.15s; }
 .ai-dot:nth-child(3) { animation-delay: 0.3s; }
+
+/* Subtle marquee-like fade in */
+@keyframes fade-up {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.fade-up { animation: fade-up 280ms cubic-bezier(0.34, 1.4, 0.64, 1) both; }

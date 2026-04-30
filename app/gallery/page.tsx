@@ -14,85 +14,60 @@ export default function GalleryPage() {
   const [mine, setMine] = useState(false);
   const [sort, setSort] = useState<'recent' | 'popular'>('recent');
 
+  const chipClass = (active: boolean) =>
+    cn(
+      'whitespace-nowrap px-3 h-7 rounded-pill border text-[12px] tracking-tight transition-colors flex items-center gap-1.5',
+      active
+        ? 'bg-text text-bg border-text'
+        : 'border-border-strong text-muted hover:text-text hover:bg-elev'
+    );
+
   return (
     <div className="min-h-screen">
-      <header className="sticky top-0 z-30 bg-bg/85 backdrop-blur border-b border-border">
-        <div className="px-4 py-3 flex items-center gap-3 flex-wrap">
+      <header className="sticky top-0 z-30 bg-bg/85 backdrop-blur-md border-b border-border">
+        <div className="px-6 h-14 flex items-center gap-4">
           <Link href="/">
             <Button variant="ghost" size="sm">
-              <ArrowLeft className="h-4 w-4" />
+              <ArrowLeft className="h-3.5 w-3.5" />
               Studio
             </Button>
           </Link>
-          <h1 className="font-semibold text-lg flex-1">Gallery</h1>
-          <div className="flex items-center gap-1 text-xs">
-            <button
-              onClick={() => setSort('recent')}
-              className={cn(
-                'px-3 h-8 rounded-md border border-border',
-                sort === 'recent' ? 'bg-accent border-accent text-white' : 'bg-panel hover:bg-border'
-              )}
-            >
-              Recent
-            </button>
-            <button
-              onClick={() => setSort('popular')}
-              className={cn(
-                'px-3 h-8 rounded-md border border-border',
-                sort === 'popular' ? 'bg-accent border-accent text-white' : 'bg-panel hover:bg-border'
-              )}
-            >
-              Popular
-            </button>
+          <div className="flex items-baseline gap-2 flex-1">
+            <h1 className="font-display font-semibold text-[15px] tracking-tightest leading-none">
+              Gallery
+            </h1>
+            <span className="label">Public feed</span>
+          </div>
+          <div className="flex items-center gap-1">
+            {(['recent', 'popular'] as const).map((s) => (
+              <button key={s} onClick={() => setSort(s)} className={chipClass(sort === s)}>
+                {s.charAt(0).toUpperCase() + s.slice(1)}
+              </button>
+            ))}
           </div>
         </div>
 
-        <div className="px-4 pb-3 flex items-center gap-2 overflow-x-auto scrollbar-thin">
-          <button
-            onClick={() => setMine(false)}
-            className={cn(
-              'whitespace-nowrap px-3 h-8 rounded-full border text-xs',
-              !mine ? 'bg-white text-black border-white' : 'border-border bg-panel'
-            )}
-          >
+        <div className="px-6 pb-3 flex items-center gap-1.5 overflow-x-auto scrollbar-thin">
+          <button onClick={() => setMine(false)} className={chipClass(!mine)}>
             All
           </button>
-          <button
-            onClick={() => setMine(true)}
-            className={cn(
-              'whitespace-nowrap px-3 h-8 rounded-full border text-xs',
-              mine ? 'bg-white text-black border-white' : 'border-border bg-panel'
-            )}
-          >
+          <button onClick={() => setMine(true)} className={chipClass(mine)}>
             My
           </button>
-          <div className="w-px h-5 bg-border mx-1" />
-          <button
-            onClick={() => setStyle(undefined)}
-            className={cn(
-              'whitespace-nowrap px-3 h-8 rounded-full border text-xs',
-              !style ? 'bg-accent text-white border-accent' : 'border-border bg-panel'
-            )}
-          >
-            All styles
+          <div className="w-px h-4 bg-border mx-1" />
+          <button onClick={() => setStyle(undefined)} className={chipClass(!style)}>
+            Any style
           </button>
           {STYLE_LIST.map((s) => (
-            <button
-              key={s.id}
-              onClick={() => setStyle(s.id)}
-              className={cn(
-                'whitespace-nowrap px-3 h-8 rounded-full border text-xs flex items-center gap-1',
-                style === s.id ? 'bg-accent text-white border-accent' : 'border-border bg-panel'
-              )}
-            >
-              <span>{s.emoji}</span>
+            <button key={s.id} onClick={() => setStyle(s.id)} className={chipClass(style === s.id)}>
+              <span className="opacity-70">{s.emoji}</span>
               {s.label}
             </button>
           ))}
         </div>
       </header>
 
-      <main className="p-4">
+      <main className="p-6">
         <GalleryGrid style={style} mine={mine} sort={sort} />
       </main>
     </div>

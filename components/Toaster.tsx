@@ -36,14 +36,14 @@ export function Toaster() {
         <div
           key={t.id}
           className={cn(
-            'pointer-events-auto bg-panel border border-border px-4 py-3 rounded-lg shadow-xl',
-            'flex items-center gap-3 min-w-[240px] max-w-[360px]'
+            'pointer-events-auto bg-panel border border-border-strong px-4 py-3 rounded-2xl backdrop-blur',
+            'flex items-center gap-3 min-w-[240px] max-w-[400px] fade-up'
           )}
         >
-          <span className="text-sm flex-1">{t.text}</span>
+          <span className="text-[13px] tracking-tight flex-1 leading-snug">{t.text}</span>
           {t.action && (
             <button
-              className="text-accent text-xs font-semibold hover:underline"
+              className="mono text-[11px] uppercase tracking-widest text-accent hover:underline"
               onClick={() => {
                 t.action?.onClick();
                 remove(t.id);

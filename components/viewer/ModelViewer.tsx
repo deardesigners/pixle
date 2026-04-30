@@ -9,6 +9,7 @@ import { STYLE_PRESETS } from '@/lib/styles';
 import { Button } from '@/components/ui/button';
 import { Download, RefreshCw, Layers, Save } from 'lucide-react';
 import { toast } from '@/components/Toaster';
+import { cn } from '@/lib/utils';
 
 type Props = {
   onScreenshot?: (dataUrl: string) => void;
@@ -69,7 +70,7 @@ export function ModelViewer({ onScreenshot }: Props) {
   };
 
   return (
-    <div className="relative w-full h-full bg-bg rounded-lg border border-border overflow-hidden">
+    <div className="relative w-full h-full bg-panel rounded-2xl border border-border overflow-hidden">
       <Canvas
         gl={{ preserveDrawingBuffer: true, antialias: true }}
         camera={{ position: [3, 2.5, 3], fov: 45 }}
@@ -113,38 +114,36 @@ export function ModelViewer({ onScreenshot }: Props) {
         error={generationError}
       />
 
-      <div className="absolute top-2 right-2 flex flex-col gap-2">
-        <Button size="icon" variant="secondary" onClick={() => setResetSignal((s) => s + 1)} aria-label="Reset camera">
-          <RefreshCw className="h-4 w-4" />
-        </Button>
-        <Button
-          size="icon"
-          variant={wireframe ? 'default' : 'secondary'}
+      <div className="absolute top-3 left-3 label">Render</div>
+
+      <div className="absolute top-3 right-3 flex flex-col gap-1.5">
+        <button
+          onClick={() => setResetSignal((s) => s + 1)}
+          aria-label="Reset camera"
+          className="h-8 w-8 inline-flex items-center justify-center rounded-pill border border-border-strong bg-bg/50 backdrop-blur text-text hover:bg-text hover:text-bg transition-colors"
+        >
+          <RefreshCw className="h-3.5 w-3.5" />
+        </button>
+        <button
           onClick={() => setWireframe((w) => !w)}
           aria-label="Toggle wireframe"
+          className={cn(
+            'h-8 w-8 inline-flex items-center justify-center rounded-pill border bg-bg/50 backdrop-blur transition-colors',
+            wireframe ? 'border-accent bg-accent text-accent-fg' : 'border-border-strong text-text hover:bg-text hover:text-bg'
+          )}
         >
-          <Layers className="h-4 w-4" />
-        </Button>
+          <Layers className="h-3.5 w-3.5" />
+        </button>
       </div>
 
-      <div className="absolute bottom-2 left-2 right-2 flex flex-wrap gap-2">
-        <Button
-          variant="secondary"
-          size="sm"
-          onClick={handleDownload}
-          disabled={!currentModel}
-        >
-          <Download className="h-4 w-4" />
-          .glb
+      <div className="absolute bottom-3 left-3 right-3 flex flex-wrap gap-1.5">
+        <Button variant="secondary" size="sm" onClick={handleDownload} disabled={!currentModel}>
+          <Download className="h-3.5 w-3.5" />
+          <span className="mono text-[11px]">.glb</span>
         </Button>
-        <Button
-          variant="secondary"
-          size="sm"
-          onClick={handleSave}
-          disabled={!currentModel || savedToGallery}
-        >
-          <Save className="h-4 w-4" />
-          {savedToGallery ? 'Saved' : 'Save to gallery'}
+        <Button variant="secondary" size="sm" onClick={handleSave} disabled={!currentModel || savedToGallery}>
+          <Save className="h-3.5 w-3.5" />
+          {savedToGallery ? 'Published' : 'Publish'}
         </Button>
       </div>
     </div>
@@ -162,28 +161,28 @@ function ProgressOverlay({
 }) {
   if (status === 'idle' || status === 'ready') return null;
   return (
-    <div className="absolute inset-0 flex items-center justify-center bg-black/40 backdrop-blur-sm pointer-events-none">
-      <div className="bg-panel border border-border rounded-lg px-6 py-4 min-w-[240px] text-center">
+    <div className="absolute inset-0 flex items-center justify-center bg-bg/60 backdrop-blur-sm pointer-events-none fade-up">
+      <div className="bg-panel border border-border rounded-2xl px-6 py-5 min-w-[260px] text-center">
         {status === 'error' ? (
           <>
-            <div className="text-red-400 text-sm font-medium mb-1">Generation failed</div>
-            <div className="text-xs text-muted">{error}</div>
+            <div className="label text-red-400 mb-2">Generation failed</div>
+            <div className="text-[13px] text-muted">{error}</div>
           </>
         ) : (
           <>
-            <div className="flex items-center justify-center gap-1.5 mb-3">
+            <div className="flex items-center justify-center gap-1 mb-3">
               <span className="ai-dot" />
               <span className="ai-dot" />
               <span className="ai-dot" />
             </div>
-            <div className="text-sm font-medium mb-2 capitalize">{status}…</div>
-            <div className="h-1.5 bg-border rounded-full overflow-hidden">
+            <div className="font-display text-sm mb-3 lowercase tracking-tight">{status}</div>
+            <div className="h-px bg-border-strong overflow-hidden">
               <div
-                className="h-full bg-gradient-to-r from-accent to-accent2 transition-[width] duration-300"
+                className="h-full bg-accent transition-[width] duration-300"
                 style={{ width: `${Math.max(5, progress)}%` }}
               />
             </div>
-            <div className="text-xs text-muted mt-2">{Math.round(progress)}%</div>
+            <div className="mono text-[10px] text-muted mt-2">{String(Math.round(progress)).padStart(2, '0')}%</div>
           </>
         )}
       </div>
@@ -301,7 +300,17 @@ function LivePixelModel({
   const { cubes, fit } = useMemo(() => {
     const out: Array<{ pos: [number, number, number]; color: THREE.Color; depth: number }> = [];
     const half = size / 2;
-    let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
+    // Каждый уникальный цвет → свой Z-слой. Глубина модели растёт с числом цветов,
+    // под камерой ¾ это даёт эффект стопки разноцветных пластин.
+    const colorLayer = new Map<string, number>();
+    let layerCount = 0;
+    const layerSpacing = 1.0;
+    const layerDepth = 0.95; // лёгкий зазор между слоями, чтобы они читались как plates
+
+    let minX = Infinity, maxX = -Infinity;
+    let minY = Infinity, maxY = -Infinity;
+    let minZ = Infinity, maxZ = -Infinity;
+
     for (let y = 0; y < size; y++) {
       for (let x = 0; x < size; x++) {
         const i = (y * size + x) * 4;
@@ -310,33 +319,38 @@ function LivePixelModel({
         const r = pixels[i] ?? 0;
         const g = pixels[i + 1] ?? 0;
         const b = pixels[i + 2] ?? 0;
-        // Z-экструзия по яркости даёт ощущение объёма для voxel/lowpoly.
-        const lum = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
-        const depth = styleId === 'voxel' || styleId === 'lowpoly' ? 0.3 + lum * 0.6 : 1;
+        const key = `${r},${g},${b}`;
+        let layer = colorLayer.get(key);
+        if (layer === undefined) {
+          layer = layerCount++;
+          colorLayer.set(key, layer);
+        }
         const px = x - half + 0.5;
         const py = half - y - 0.5;
+        const pz = layer * layerSpacing;
         out.push({
-          pos: [px, py, 0],
+          pos: [px, py, pz],
           color: new THREE.Color(r / 255, g / 255, b / 255),
-          depth
+          depth: layerDepth
         });
         if (px < minX) minX = px;
         if (px > maxX) maxX = px;
         if (py < minY) minY = py;
         if (py > maxY) maxY = py;
+        if (pz < minZ) minZ = pz;
+        if (pz > maxZ) maxZ = pz;
       }
     }
-    // Bounding-box-based auto-fit: центрируем по реальному содержимому
-    // и скейлим так, чтобы максимальный габарит равнялся 1.7 unit (камера на
-    // distance ~5 с fov 45° видит ~4 units по высоте — модель влезает с запасом).
     if (out.length === 0) {
-      return { cubes: out, fit: { cx: 0, cy: 0, scale: 1 } };
+      return { cubes: out, fit: { cx: 0, cy: 0, cz: 0, scale: 1 } };
     }
     const cx = (minX + maxX) / 2;
     const cy = (minY + maxY) / 2;
-    const longest = Math.max(maxX - minX + 1, maxY - minY + 1);
+    const cz = (minZ + maxZ) / 2;
+    // Учитываем все три измерения — много цветов = глубокая модель.
+    const longest = Math.max(maxX - minX + 1, maxY - minY + 1, maxZ - minZ + 1);
     const scale = 1.7 / longest;
-    return { cubes: out, fit: { cx, cy, scale } };
+    return { cubes: out, fit: { cx, cy, cz, scale } };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pixels, size, version, styleId]);
 
@@ -360,7 +374,7 @@ function LivePixelModel({
     // Внешняя группа крутится/пульсирует по стилю; внутренняя — масштаб
     // и центровка под bounding box, чтобы анимация не ломала auto-fit.
     <group ref={groupRef}>
-      <group scale={fit.scale} position={[-fit.cx * fit.scale, -fit.cy * fit.scale, 0]}>
+      <group scale={fit.scale} position={[-fit.cx * fit.scale, -fit.cy * fit.scale, -fit.cz * fit.scale]}>
         <Instances limit={4096} range={cubes.length} castShadow receiveShadow>
           {isClay ? (
             <sphereGeometry args={[0.55, 12, 12]} />
