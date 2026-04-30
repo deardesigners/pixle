@@ -14,14 +14,44 @@ function dataUrlToBuffer(dataUrl: string): { buffer: Buffer; mime: string } {
   return { mime: m[1] ?? 'image/png', buffer: Buffer.from(m[2] ?? '', 'base64') };
 }
 
+const hasBlob = (): boolean => Boolean(process.env.BLOB_READ_WRITE_TOKEN);
+const hasPostgres = (): boolean => Boolean(process.env.POSTGRES_URL);
+
 export async function POST(req: Request): Promise<Response> {
   try {
     const body = await req.json();
     const parsed = GenerateBodySchema.parse(body);
 
     const id = nanoid(10);
-    const { buffer } = dataUrlToBuffer(parsed.imageBase64);
 
+    // Demo-режим: ни Meshy, ни Blob, ни Postgres не сконфигурированы.
+    // Возвращаем сразу — клиент сам отрисует voxel-фолбэк из текущих pixels.
+    // Это позволяет деплою работать на bare Vercel без подключения хранилищ.
+    if (!hasMeshyKey() && (!hasBlob() || !hasPostgres())) {
+      return NextResponse.json({
+        generationId: id,
+        taskId: null,
+        previewUrl: null,
+        modelUrl: 'demo://voxel',
+        demoMode: true
+      });
+    }
+
+    // Полный flow требует Blob (preview) и Postgres (запись).
+    if (!hasBlob()) {
+      return NextResponse.json(
+        { code: 'BLOB_NOT_CONFIGURED', message: 'BLOB_READ_WRITE_TOKEN env var not set' },
+        { status: 503 }
+      );
+    }
+    if (!hasPostgres()) {
+      return NextResponse.json(
+        { code: 'POSTGRES_NOT_CONFIGURED', message: 'POSTGRES_URL env var not set' },
+        { status: 503 }
+      );
+    }
+
+    const { buffer } = dataUrlToBuffer(parsed.imageBase64);
     const previewBlob = await put(`previews/${id}.png`, buffer, {
       access: 'public',
       contentType: 'image/png'
@@ -43,7 +73,6 @@ export async function POST(req: Request): Promise<Response> {
       });
       taskId = result.taskId;
     } else {
-      // Demo-режим: воксельный фолбэк, рендер на клиенте.
       status = 'ready';
       modelUrl = 'demo://voxel';
     }

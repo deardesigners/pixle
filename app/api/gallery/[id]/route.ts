@@ -8,6 +8,9 @@ export async function GET(
   ctx: { params: { id: string } }
 ): Promise<Response> {
   try {
+    if (!process.env.POSTGRES_URL) {
+      return NextResponse.json({ code: 'NOT_FOUND' }, { status: 404 });
+    }
     const url = new URL(req.url);
     const clientId = url.searchParams.get('clientId');
     const row = await getGeneration(ctx.params.id);

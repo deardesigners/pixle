@@ -7,6 +7,12 @@ export const runtime = 'nodejs';
 
 export async function POST(req: Request): Promise<Response> {
   try {
+    if (!process.env.BLOB_READ_WRITE_TOKEN || !process.env.POSTGRES_URL) {
+      return NextResponse.json(
+        { code: 'DEMO_MODE', message: 'Gallery недоступна без BLOB_READ_WRITE_TOKEN и POSTGRES_URL' },
+        { status: 503 }
+      );
+    }
     const body = await req.json();
     const parsed = FinalizeBodySchema.parse(body);
 

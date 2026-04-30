@@ -9,6 +9,9 @@ export async function POST(
   ctx: { params: { id: string } }
 ): Promise<Response> {
   try {
+    if (!process.env.POSTGRES_URL) {
+      return NextResponse.json({ liked: false, count: 0 });
+    }
     const body = await req.json();
     const parsed = LikeBodySchema.parse(body);
     const result = await toggleLike(ctx.params.id, parsed.clientId);

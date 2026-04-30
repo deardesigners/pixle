@@ -54,6 +54,10 @@ export function ModelViewer({ onScreenshot }: Props) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ generationId: currentModel.generationId, thumbnailBase64: dataUrl })
       });
+      if (res.status === 503) {
+        toast('Demo mode: галерея отключена. Подключи BLOB_READ_WRITE_TOKEN + POSTGRES_URL.');
+        return;
+      }
       if (!res.ok) throw new Error('Finalize failed');
       setSavedToGallery(true);
       toast('Saved to gallery', { label: 'Open', onClick: () => window.open('/gallery', '_self') });
