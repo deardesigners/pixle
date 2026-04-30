@@ -84,11 +84,11 @@ export function ModelViewer({ onScreenshot }: Props) {
         flat
       >
         <color attach="background" args={['#F3F0FF']} />
-        <ambientLight intensity={0.85} />
-        <directionalLight position={[4, 6, 4]} intensity={0.4} castShadow />
+        <ambientLight intensity={1.2} />
+        <directionalLight position={[4, 6, 4]} intensity={0.35} castShadow />
         <Suspense fallback={null}>
           {/* Environment даёт лёгкий fill-light без отбеливания насыщенных цветов */}
-          <Environment preset="apartment" environmentIntensity={0.15} background={false} />
+          <Environment preset="apartment" environmentIntensity={0.05} background={false} />
           {currentModel && !currentModel.url.startsWith('demo://') ? (
             <ModelLoader
               url={currentModel.url}
@@ -336,9 +336,13 @@ function LivePixelModel({
         const px = x - half + 0.5;
         const py = half - y - 0.5;
         const pz = layer * layerSpacing;
+        // Используем hex-строку: Three.js парсит как sRGB и корректно конвертит
+        // в linear-пространство сцены. setRGB(r,g,b) с float-аргументами трактует
+        // их как linear → итоговые цвета бледнеют после sRGB-вывода.
+        const hex = `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`;
         out.push({
           pos: [px, py, pz],
-          color: new THREE.Color(r / 255, g / 255, b / 255),
+          color: new THREE.Color(hex),
           depth: layerDepth
         });
         if (px < minX) minX = px;

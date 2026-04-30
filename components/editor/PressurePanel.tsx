@@ -21,7 +21,7 @@ export function PressurePanel() {
         <button
           onClick={() => setPressureEnabled(!pressureEnabled)}
           className={cn(
-            'h-7 px-4 rounded-pill text-[11px] font-bold uppercase tracking-wider transition-all',
+            'h-8 px-4 rounded-pill text-[13px] font-semibold transition-all',
             pressureEnabled
               ? 'bg-accent text-accent-bold'
               : 'bg-text/5 text-text/50 hover:bg-text/10'

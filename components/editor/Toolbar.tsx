@@ -25,7 +25,7 @@ const TOOLS: Array<{ id: Tool; label: string; Icon: typeof Brush; key: string }>
   { id: 'eyedropper', label: 'Eyedropper (I)', Icon: Pipette, key: 'I' }
 ];
 
-export function Toolbar({ onGenerate }: { onGenerate: () => void }) {
+export function Toolbar({ onGenerate, hasHiRes = false }: { onGenerate: () => void; hasHiRes?: boolean }) {
   const {
     size,
     setSize,
@@ -124,25 +124,27 @@ export function Toolbar({ onGenerate }: { onGenerate: () => void }) {
         </Tooltip>
       </div>
 
-      <div className="ml-auto">
-        <Button
-          variant="default"
-          onClick={onGenerate}
-          disabled={isEmpty || generating}
-        >
-          {generating ? (
-            <>
-              <span className="flex gap-1"><span className="ai-dot" /><span className="ai-dot" /><span className="ai-dot" /></span>
-              <span>Rendering</span>
-            </>
-          ) : (
-            <>
-              <Sparkles className="h-[18px] w-[18px]" />
-              Render
-            </>
-          )}
-        </Button>
-      </div>
+      {hasHiRes && (
+        <div className="ml-auto">
+          <Button
+            variant="default"
+            onClick={onGenerate}
+            disabled={isEmpty || generating}
+          >
+            {generating ? (
+              <>
+                <span className="flex gap-1"><span className="ai-dot" /><span className="ai-dot" /><span className="ai-dot" /></span>
+                <span>Rendering</span>
+              </>
+            ) : (
+              <>
+                <Sparkles className="h-[18px] w-[18px]" />
+                Hi-res render
+              </>
+            )}
+          </Button>
+        </div>
+      )}
     </div>
   );
 }

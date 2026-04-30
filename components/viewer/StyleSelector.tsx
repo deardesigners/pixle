@@ -7,22 +7,22 @@ export function StyleSelector() {
   const { currentStyle, setStyle, generationStatus } = useEditor();
   const locked = generationStatus === 'pending' || generationStatus === 'polling';
   return (
-    <div className="cs-card p-5">
-      <div className="flex items-center justify-between px-2 pb-3.5">
+    <div className="cs-card p-6">
+      <div className="flex items-center justify-between px-2 pb-4">
         <span className="cs-label">Style</span>
         <span className="cs-label">{STYLE_PRESETS[currentStyle].label}</span>
       </div>
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2.5">
         {STYLE_LIST.map((s) => (
           <button
             key={s.id}
             onClick={() => !locked && setStyle(s.id)}
             disabled={locked}
             className={cn(
-              'h-12 px-4 rounded-pill border-[1.5px] transition-all flex items-center justify-center',
+              'h-12 px-4 rounded-pill transition-all flex items-center justify-center',
               currentStyle === s.id
-                ? 'border-text bg-accent text-accent-bold'
-                : 'border-text/15 hover:border-text/40',
+                ? 'bg-accent ring-2 ring-text ring-inset'
+                : 'bg-transparent ring-[1.5px] ring-inset ring-text/12 hover:ring-text/40',
               locked && 'opacity-40 cursor-not-allowed'
             )}
           >

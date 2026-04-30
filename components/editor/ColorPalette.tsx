@@ -10,8 +10,8 @@ const PICO8 = [
 export function ColorPalette() {
   const { color, setColor } = useEditor();
   return (
-    <div className="flex items-center gap-2.5">
-      <div className="grid grid-cols-8 gap-1.5">
+    <div className="flex items-center gap-3">
+      <div className="grid grid-cols-8 gap-2.5">
         {PICO8.map((c) => (
           <button
             key={c}

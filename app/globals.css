@@ -136,15 +136,14 @@ h1, h2, h3, h4 {
   box-shadow: 0 4px 24px rgba(2,2,10,0.04);
 }
 
-/* Sub-label CopySight */
+/* Section label — sentence case, не uppercase */
 .cs-label {
   font-family: inherit;
-  font-size: 13px;
-  font-weight: 600;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
+  font-size: 14px;
+  font-weight: 500;
+  letter-spacing: -0.01em;
   color: var(--accent-bold);
-  opacity: 0.5;
+  opacity: 0.55;
 }
 
 /* AI-native typing pulse */

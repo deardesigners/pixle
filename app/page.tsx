@@ -176,19 +176,19 @@ function Studio() {
       <header className="sticky top-4 z-30 mx-4 mt-4 cs-capsule rounded-pill">
         <div className="h-[64px] px-6 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="font-display font-bold text-[18px] tracking-tightest leading-none flex items-baseline gap-1.5 text-accent-bold">
-              <span>PXL</span>
+            <div className="font-display font-bold text-[19px] tracking-tightest leading-none flex items-baseline gap-1.5 text-accent-bold">
+              <span>Pixel</span>
               <span className="opacity-50">→</span>
               <span>3D</span>
             </div>
             <span className="cs-label hidden sm:inline">Studio</span>
             {config && !config.hasMeshy && (
               <Tooltip content={
-                <div className="max-w-[260px] text-[12px] leading-snug">
-                  Live 3D работает. Hi-res Meshy-рендер требует <span className="font-mono">MESHY_API_KEY</span> в Vercel → Settings → Env Vars.
+                <div className="max-w-[260px] text-[13px] leading-snug">
+                  Live 3D работает мгновенно. Hi-res Meshy-рендер требует <span className="font-mono">MESHY_API_KEY</span> в env-переменных Vercel.
                 </div>
               }>
-                <span className="ml-1 inline-flex items-center gap-1.5 h-7 px-3 rounded-pill bg-accent text-accent-bold text-[11px] font-semibold uppercase tracking-wider cursor-help">
+                <span className="ml-1 inline-flex items-center h-8 px-3.5 rounded-pill bg-accent text-accent-bold text-[13px] font-semibold cursor-help">
                   Demo
                 </span>
               </Tooltip>
@@ -205,7 +205,7 @@ function Studio() {
 
       <main className="flex-1 flex flex-col md:grid md:grid-cols-2 gap-6 p-6 pt-6">
         <section className="flex flex-col gap-5">
-          <Toolbar onGenerate={onGenerate} />
+          <Toolbar onGenerate={onGenerate} hasHiRes={config?.hasMeshy ?? false} />
           <div className="relative flex-1 cs-card flex items-center justify-center min-h-[440px] no-touch overflow-hidden p-8">
             <span className="absolute top-6 left-8 cs-label z-10">Editor · {size}×{size}</span>
             <PixelCanvas />
