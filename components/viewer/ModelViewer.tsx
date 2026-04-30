@@ -298,9 +298,10 @@ function LivePixelModel({
     camera.lookAt(0, 0, 0);
   }, [camera, resetSignal]);
 
-  const cubes = useMemo(() => {
+  const { cubes, fit } = useMemo(() => {
     const out: Array<{ pos: [number, number, number]; color: THREE.Color; depth: number }> = [];
     const half = size / 2;
+    let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
     for (let y = 0; y < size; y++) {
       for (let x = 0; x < size; x++) {
         const i = (y * size + x) * 4;
@@ -309,24 +310,38 @@ function LivePixelModel({
         const r = pixels[i] ?? 0;
         const g = pixels[i + 1] ?? 0;
         const b = pixels[i + 2] ?? 0;
-        // Лёгкая Z-экструзия по яркости — даёт ощущение объёма из плоского рисунка.
+        // Z-экструзия по яркости даёт ощущение объёма для voxel/lowpoly.
         const lum = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
         const depth = styleId === 'voxel' || styleId === 'lowpoly' ? 0.3 + lum * 0.6 : 1;
+        const px = x - half + 0.5;
+        const py = half - y - 0.5;
         out.push({
-          pos: [x - half + 0.5, half - y - 0.5, 0],
+          pos: [px, py, 0],
           color: new THREE.Color(r / 255, g / 255, b / 255),
           depth
         });
+        if (px < minX) minX = px;
+        if (px > maxX) maxX = px;
+        if (py < minY) minY = py;
+        if (py > maxY) maxY = py;
       }
     }
-    return out;
-    // version форсирует пересчёт даже если pixels-ссылка та же.
+    // Bounding-box-based auto-fit: центрируем по реальному содержимому
+    // и скейлим так, чтобы максимальный габарит равнялся 1.7 unit (камера на
+    // distance ~5 с fov 45° видит ~4 units по высоте — модель влезает с запасом).
+    if (out.length === 0) {
+      return { cubes: out, fit: { cx: 0, cy: 0, scale: 1 } };
+    }
+    const cx = (minX + maxX) / 2;
+    const cy = (minY + maxY) / 2;
+    const longest = Math.max(maxX - minX + 1, maxY - minY + 1);
+    const scale = 1.7 / longest;
+    return { cubes: out, fit: { cx, cy, scale } };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pixels, size, version, styleId]);
 
   useStyleAnimation(groupRef, styleId);
 
-  const scale = 2 / size;
   const isHolo = styleId === 'holographic';
   const isClay = styleId === 'claymation';
   const isStone = styleId === 'stone';
@@ -342,32 +357,36 @@ function LivePixelModel({
   }
 
   return (
-    <group ref={groupRef} scale={scale}>
-      <Instances limit={4096} range={cubes.length} castShadow receiveShadow>
-        {isClay ? (
-          <sphereGeometry args={[0.55, 12, 12]} />
-        ) : (
-          <boxGeometry args={[1, 1, 1]} />
-        )}
-        <meshStandardMaterial
-          wireframe={wireframe}
-          transparent={isHolo}
-          opacity={isHolo ? 0.65 : 1}
-          emissive={isHolo ? new THREE.Color('#7dd3fc') : new THREE.Color('#000000')}
-          emissiveIntensity={isHolo ? 0.5 : 0}
-          roughness={isStone ? 0.95 : isClay ? 0.85 : isLowPoly ? 0.7 : 0.5}
-          metalness={isStone ? 0.1 : 0}
-          flatShading={isLowPoly}
-        />
-        {cubes.map((c, i) => (
-          <Instance
-            key={i}
-            position={c.pos}
-            color={c.color}
-            scale={[1, 1, c.depth]}
+    // Внешняя группа крутится/пульсирует по стилю; внутренняя — масштаб
+    // и центровка под bounding box, чтобы анимация не ломала auto-fit.
+    <group ref={groupRef}>
+      <group scale={fit.scale} position={[-fit.cx * fit.scale, -fit.cy * fit.scale, 0]}>
+        <Instances limit={4096} range={cubes.length} castShadow receiveShadow>
+          {isClay ? (
+            <sphereGeometry args={[0.55, 12, 12]} />
+          ) : (
+            <boxGeometry args={[1, 1, 1]} />
+          )}
+          <meshStandardMaterial
+            wireframe={wireframe}
+            transparent={isHolo}
+            opacity={isHolo ? 0.65 : 1}
+            emissive={isHolo ? new THREE.Color('#7dd3fc') : new THREE.Color('#000000')}
+            emissiveIntensity={isHolo ? 0.5 : 0}
+            roughness={isStone ? 0.95 : isClay ? 0.85 : isLowPoly ? 0.7 : 0.5}
+            metalness={isStone ? 0.1 : 0}
+            flatShading={isLowPoly}
           />
-        ))}
-      </Instances>
+          {cubes.map((c, i) => (
+            <Instance
+              key={i}
+              position={c.pos}
+              color={c.color}
+              scale={[1, 1, c.depth]}
+            />
+          ))}
+        </Instances>
+      </group>
     </group>
   );
 }
