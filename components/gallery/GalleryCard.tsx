@@ -1,11 +1,11 @@
 'use client';
 
 import Image from 'next/image';
+import Link from 'next/link';
 import { useState, useTransition } from 'react';
 import { Heart, Recycle, Maximize2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
 import { ModelPreview } from './ModelPreview';
 import { STYLE_PRESETS } from '@/lib/styles';
 import type { StyleId } from '@/lib/validation';
@@ -67,18 +67,21 @@ export function GalleryCard({
   const thumb = item.thumbnail_url || item.preview_url;
   const hasModel = item.pixel_data && item.pixel_data.pixels?.length > 0;
 
+  const workHref = `/g/${item.id}`;
+
   return (
     <div className="bg-panel border border-border rounded-xl overflow-hidden group">
-      <div
-        className="relative aspect-square bg-bg checker-bg"
+      <Link
+        href={workHref}
+        className="relative aspect-square bg-bg checker-bg block"
         onPointerEnter={() => setShowPreview(true)}
         onPointerLeave={() => setShowPreview(false)}
-        onClick={() => setShowPreview((s) => !s)}
+        aria-label={`${preset.label} pixel art in 3D`}
       >
         {thumb && (
           <Image
             src={thumb}
-            alt={preset.label}
+            alt={`${preset.label} pixel art`}
             fill
             sizes="(max-width: 768px) 50vw, 25vw"
             className={cn('object-cover transition-opacity', showPreview && hasModel && 'opacity-0')}
@@ -86,7 +89,7 @@ export function GalleryCard({
           />
         )}
         {showPreview && hasModel && (
-          <div className="absolute inset-0">
+          <div className="absolute inset-0 pointer-events-none">
             <ModelPreview pixelData={item.pixel_data} />
           </div>
         )}
@@ -94,29 +97,15 @@ export function GalleryCard({
           <span>{preset.emoji}</span>
           <span>{preset.label}</span>
         </Badge>
-        <Dialog>
-          <DialogTrigger asChild>
-            <Button size="icon" variant="secondary" className="absolute top-2 right-2 h-8 w-8">
-              <Maximize2 className="h-3.5 w-3.5" />
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="p-0">
-            <div className="aspect-square w-full bg-bg">
-              {hasModel ? (
-                <ModelPreview pixelData={item.pixel_data} />
-              ) : thumb ? (
-                <Image src={thumb} alt={preset.label} fill className="object-contain" unoptimized />
-              ) : null}
-            </div>
-            <div className="p-4 flex items-center gap-2">
-              <Button variant="default" size="sm" onClick={onRemix}>
-                <Recycle className="h-4 w-4" />
-                Remix
-              </Button>
-            </div>
-          </DialogContent>
-        </Dialog>
-      </div>
+        <Button
+          size="icon"
+          variant="secondary"
+          className="absolute top-2 right-2 h-8 w-8 pointer-events-none"
+          aria-hidden
+        >
+          <Maximize2 className="h-3.5 w-3.5" />
+        </Button>
+      </Link>
       <div className="flex items-center justify-between p-3">
         <button
           onClick={onLike}

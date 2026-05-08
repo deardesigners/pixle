@@ -24,6 +24,11 @@ export default function GalleryPage() {
 
   return (
     <div className="min-h-screen">
+      <p className="sr-only">
+        Browse a public gallery of pixel art turned into 3D models. Filter by style, sort by
+        recent or popular, and remix any sprite as a starting point for your own pixel art
+        creation.
+      </p>
       <header className="sticky top-0 z-30 bg-bg/85 backdrop-blur-md border-b border-border">
         <div className="px-6 h-14 flex items-center gap-4">
           <Link href="/">
