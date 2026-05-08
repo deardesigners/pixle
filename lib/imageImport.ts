@@ -1,29 +1,25 @@
 /**
- * Импорт картинки → 64×64 пиксельная сетка с авто-удалением однородного фона
- * и квантизацией в небольшую палитру.
+ * Импорт картинки → 64×64 пиксельная сетка с авто-удалением однородного фона.
  *
- * Логика фона:
- *   - Сэмплим 1px-кольцо по периметру.
- *   - Находим доминирующий цвет в кольце.
- *   - Если ≥78% краевых пикселей попадают в радиус EDGE_TOLERANCE от него
- *     (в RGB Euclidean) — фон считается «однородным» и вырезается.
- *   - Иначе (лес, улица, любой сложный фон) — оставляем как есть.
+ * Логика фона (flood-fill, не color-key):
+ *   - Сэмплим 1px-кольцо по периметру и находим доминирующий цвет.
+ *   - Если ≥EDGE_DOMINANCE_THRESHOLD краевых пикселей попадают в радиус
+ *     EDGE_TOLERANCE — фон считается «однородным».
+ *   - Затем БФС от каждого краевого пикселя bg-цвета: помечаем прозрачными
+ *     ТОЛЬКО те пиксели, которые соединены с краем непрерывным регионом
+ *     bg-цвета. Это критично — иначе блики на лбу/щеках (близкие к белому)
+ *     удалялись бы как фон, и портрет терял половину детализации.
+ *   - Для сложного фона (лес, улица, градиент) — оставляем как есть.
  *
- * Квантизация — медиан-кат до PALETTE_SIZE цветов на непрозрачных пикселях.
- * Меньше уникальных цветов = меньше Z-слоёв в 3D = читаемая модель.
+ * Цветовая квантизация **отключена**: при 64×64 уникальных цветов и так не
+ * больше пары тысяч, а median-cut в 24-48 кластеров «съедал» полутона лица.
+ * Все depth-слои (≤6) делаются в pixelsToCubes по per-pixel яркости —
+ * палитра больше не диктует геометрию.
  */
 
 const TARGET_SIZE = 64;
-// 48 цветов: для портрета это нужный минимум, чтобы кожа/волосы/глаза/брови
-// не схлопывались median-cut'ом в 2-3 «мегакластера» (на 24 лицо становилось
-// чёрным силуэтом — все тёмные элементы сливались с волосами и фоном теней).
-// Z-слоёв в 3D всё равно максимум 6 (per-pixel luminance bucketing
-// в pixelsToCubes), палитра больше не диктует количество слоёв.
-const PALETTE_SIZE = 48;
-// 0.65 вместо 0.78: портрет на чистом фоне часто имеет ~70% края «фоновых»
-// пикселей (волосы/плечо съедают остальное), при 0.78 фон не убирался.
 const EDGE_DOMINANCE_THRESHOLD = 0.65;
-const EDGE_TOLERANCE = 36; // RGB-Euclidean. ≈ jpeg-noise + лёгкие тени по фону.
+const EDGE_TOLERANCE = 28; // RGB-Euclidean. ≈ jpeg-noise + лёгкие тени по фону.
 const EDGE_TOLERANCE_SQ = EDGE_TOLERANCE * EDGE_TOLERANCE;
 
 export type ImportResult = {
@@ -63,72 +59,96 @@ function drawSquareCrop(bitmap: ImageBitmap): Uint8ClampedArray {
 }
 
 function processImageData(data: Uint8ClampedArray): ImportResult {
-  const edge = collectEdgePixels(data);
-  const dominant = findDominantColor(edge);
-  const matchRatio = dominant ? edgeMatchRatio(edge, dominant) : 0;
-  const removeBg = matchRatio >= EDGE_DOMINANCE_THRESHOLD;
-
-  const out: number[][] = new Array(TARGET_SIZE * TARGET_SIZE);
-  const opaque: Array<[number, number, number]> = [];
-  const opaqueIdx: number[] = [];
-
-  for (let i = 0; i < TARGET_SIZE * TARGET_SIZE; i++) {
-    const o = i * 4;
-    const r = data[o]!;
-    const g = data[o + 1]!;
-    const b = data[o + 2]!;
-    if (removeBg && dominant && distSq(r, g, b, dominant.r, dominant.g, dominant.b) <= EDGE_TOLERANCE_SQ) {
-      out[i] = [0, 0, 0, 0];
-    } else {
-      opaque.push([r, g, b]);
-      opaqueIdx.push(i);
-    }
-  }
-
-  let palette: Array<[number, number, number]> = [];
-  if (opaque.length > 0) {
-    palette = medianCut(opaque, PALETTE_SIZE);
-    for (let j = 0; j < opaque.length; j++) {
-      const p = opaque[j]!;
-      const c = nearestPaletteColor(palette, p[0], p[1], p[2]);
-      out[opaqueIdx[j]!] = [c[0], c[1], c[2], 255];
-    }
-  }
-
-  // Заполнить «дыры», если фон не убирали — каждая ячейка должна быть инициализирована.
-  for (let i = 0; i < out.length; i++) {
-    if (!out[i]) out[i] = [0, 0, 0, 0];
-  }
-
-  return { size: TARGET_SIZE, pixels: out, bgRemoved: removeBg, paletteUsed: palette.length };
-}
-
-type EdgeBucket = Array<[number, number, number]>;
-
-function collectEdgePixels(data: Uint8ClampedArray): EdgeBucket {
-  const out: EdgeBucket = [];
   const N = TARGET_SIZE;
+  const total = N * N;
+
+  // Шаг 1. Доминирующий цвет края + признак «фон однородный».
+  const edge: Array<[number, number, number]> = [];
   for (let x = 0; x < N; x++) {
-    pushPixel(out, data, x, 0);
-    pushPixel(out, data, x, N - 1);
+    edge.push(readRgb(data, x, 0));
+    edge.push(readRgb(data, x, N - 1));
   }
   for (let y = 1; y < N - 1; y++) {
-    pushPixel(out, data, 0, y);
-    pushPixel(out, data, N - 1, y);
+    edge.push(readRgb(data, 0, y));
+    edge.push(readRgb(data, N - 1, y));
   }
-  return out;
+  const dominant = findDominantColor(edge);
+  let removeBg = false;
+  if (dominant) {
+    let hit = 0;
+    for (const p of edge) {
+      if (distSq(p[0], p[1], p[2], dominant.r, dominant.g, dominant.b) <= EDGE_TOLERANCE_SQ) hit++;
+    }
+    removeBg = hit / edge.length >= EDGE_DOMINANCE_THRESHOLD;
+  }
+
+  // Шаг 2. Flood-fill от края — помечаем прозрачными только пиксели,
+  // соединённые с краем через непрерывный bg-цвет.
+  const transparent = new Uint8Array(total); // 1 = bg, 0 = непрозрачный
+  if (removeBg && dominant) {
+    const visited = new Uint8Array(total);
+    const queue: number[] = [];
+    const tryEnqueue = (x: number, y: number) => {
+      if (x < 0 || x >= N || y < 0 || y >= N) return;
+      const idx = y * N + x;
+      if (visited[idx]) return;
+      const o = idx * 4;
+      const dr = data[o]! - dominant.r;
+      const dg = data[o + 1]! - dominant.g;
+      const db = data[o + 2]! - dominant.b;
+      if (dr * dr + dg * dg + db * db > EDGE_TOLERANCE_SQ) return;
+      visited[idx] = 1;
+      transparent[idx] = 1;
+      queue.push(idx);
+    };
+    // Стартуем с любого пикселя на границе, который похож на bg-цвет.
+    for (let x = 0; x < N; x++) {
+      tryEnqueue(x, 0);
+      tryEnqueue(x, N - 1);
+    }
+    for (let y = 0; y < N; y++) {
+      tryEnqueue(0, y);
+      tryEnqueue(N - 1, y);
+    }
+    while (queue.length) {
+      const idx = queue.pop()!;
+      const x = idx % N;
+      const y = (idx - x) / N;
+      tryEnqueue(x - 1, y);
+      tryEnqueue(x + 1, y);
+      tryEnqueue(x, y - 1);
+      tryEnqueue(x, y + 1);
+    }
+  }
+
+  // Шаг 3. Собираем результат — пиксели как есть, без квантизации.
+  const out: number[][] = new Array(total);
+  let opaqueCount = 0;
+  for (let i = 0; i < total; i++) {
+    if (transparent[i]) {
+      out[i] = [0, 0, 0, 0];
+    } else {
+      const o = i * 4;
+      out[i] = [data[o]!, data[o + 1]!, data[o + 2]!, 255];
+      opaqueCount++;
+    }
+  }
+
+  return { size: TARGET_SIZE, pixels: out, bgRemoved: removeBg, paletteUsed: opaqueCount };
 }
 
-function pushPixel(out: EdgeBucket, data: Uint8ClampedArray, x: number, y: number) {
+function readRgb(data: Uint8ClampedArray, x: number, y: number): [number, number, number] {
   const o = (y * TARGET_SIZE + x) * 4;
-  out.push([data[o]!, data[o + 1]!, data[o + 2]!]);
+  return [data[o]!, data[o + 1]!, data[o + 2]!];
 }
 
 /**
  * Грубое определение доминирующего цвета: бин-гистограмма с шагом 16/канал
  * (4096 ячеек). Берём самую населённую и возвращаем средний цвет внутри неё.
  */
-function findDominantColor(pixels: EdgeBucket): { r: number; g: number; b: number } | null {
+function findDominantColor(
+  pixels: Array<[number, number, number]>
+): { r: number; g: number; b: number } | null {
   if (pixels.length === 0) return null;
   const bins = new Map<number, { r: number; g: number; b: number; count: number }>();
   for (const p of pixels) {
@@ -155,79 +175,16 @@ function findDominantColor(pixels: EdgeBucket): { r: number; g: number; b: numbe
   };
 }
 
-function edgeMatchRatio(pixels: EdgeBucket, target: { r: number; g: number; b: number }): number {
-  let hit = 0;
-  for (const p of pixels) {
-    if (distSq(p[0], p[1], p[2], target.r, target.g, target.b) <= EDGE_TOLERANCE_SQ) hit++;
-  }
-  return hit / pixels.length;
-}
-
-function distSq(r1: number, g1: number, b1: number, r2: number, g2: number, b2: number): number {
+function distSq(
+  r1: number,
+  g1: number,
+  b1: number,
+  r2: number,
+  g2: number,
+  b2: number
+): number {
   const dr = r1 - r2;
   const dg = g1 - g2;
   const db = b1 - b2;
   return dr * dr + dg * dg + db * db;
-}
-
-/**
- * Медиан-кат: рекурсивно делим самое широкое измерение пополам, пока не получим
- * k блоков. Цвет блока — среднее. Стабильно для фото.
- */
-function medianCut(
-  pixels: Array<[number, number, number]>,
-  k: number
-): Array<[number, number, number]> {
-  if (pixels.length === 0 || k <= 0) return [];
-  if (k === 1 || pixels.length === 1) return [averageColor(pixels)];
-
-  let minR = 255, maxR = 0, minG = 255, maxG = 0, minB = 255, maxB = 0;
-  for (const p of pixels) {
-    if (p[0] < minR) minR = p[0];
-    if (p[0] > maxR) maxR = p[0];
-    if (p[1] < minG) minG = p[1];
-    if (p[1] > maxG) maxG = p[1];
-    if (p[2] < minB) minB = p[2];
-    if (p[2] > maxB) maxB = p[2];
-  }
-  const rangeR = maxR - minR;
-  const rangeG = maxG - minG;
-  const rangeB = maxB - minB;
-  const channel: 0 | 1 | 2 = rangeR >= rangeG && rangeR >= rangeB ? 0 : rangeG >= rangeB ? 1 : 2;
-
-  pixels.sort((a, b) => a[channel] - b[channel]);
-  const mid = pixels.length >> 1;
-  const left = pixels.slice(0, mid);
-  const right = pixels.slice(mid);
-  const halfK = Math.floor(k / 2);
-  return [...medianCut(left, halfK), ...medianCut(right, k - halfK)];
-}
-
-function averageColor(pixels: Array<[number, number, number]>): [number, number, number] {
-  let r = 0, g = 0, b = 0;
-  for (const p of pixels) {
-    r += p[0];
-    g += p[1];
-    b += p[2];
-  }
-  const n = pixels.length;
-  return [Math.round(r / n), Math.round(g / n), Math.round(b / n)];
-}
-
-function nearestPaletteColor(
-  palette: Array<[number, number, number]>,
-  r: number,
-  g: number,
-  b: number
-): [number, number, number] {
-  let best = palette[0]!;
-  let bestD = Infinity;
-  for (const c of palette) {
-    const d = distSq(r, g, b, c[0], c[1], c[2]);
-    if (d < bestD) {
-      bestD = d;
-      best = c;
-    }
-  }
-  return best;
 }
