@@ -12,21 +12,21 @@ export type FitInfo = { cx: number; cy: number; cz: number; scale: number };
  *
  * Два режима — определяются автоматически по числу уникальных цветов:
  *
- *   1. Рисунок (≤MAX_Z_LEVELS цветов): один цвет → один Z. Цвета сортируются
- *      по rec.709-яркости от тёмного к светлому. Это даёт чистые «слои» как
- *      и было раньше — фон/тело/детали стоят на своих уровнях.
+ *   1. Рисунок (≤MAX_Z_LEVELS_DRAWING цветов): один цвет → один Z, цвета
+ *      сортируются по яркости. Кубики стоят отдельными «слоями». Это сохраняет
+ *      привычное поведение для рисунков с осознанной палитрой.
  *
- *   2. Фото / импорт (>MAX_Z_LEVELS цветов): Z считается per-pixel — у каждого
- *      пикселя свой бакет (0..MAX_Z_LEVELS-1) по его собственной яркости.
- *      Это превращает портрет в осмысленный рельеф (лоб/щёки выпирают,
- *      волосы/глаза задвинуты), а не в стопку пластин по цвету. Цветовая
- *      палитра при этом не диктует геометрию — близкие по тону, но разные
- *      по цвету пиксели (волосы и тёмная кофта) могут оказаться на одном Z.
+ *   2. Фото / импорт (>MAX_Z_LEVELS_DRAWING цветов): полноценный LEGO-рельеф.
+ *      Для каждого пикселя определяется высота 0..MAX_Z_LEVELS_PHOTO-1 по
+ *      яркости (rec.709), и колонка кубиков заполняется от z=0 до этой высоты.
+ *      Светлые точки (лоб, нос, щёки) → высокие столбики; тёмные (волосы,
+ *      глаза) → короткие. Получается узнаваемый объёмный портрет.
  *
  * pixels: Uint8ClampedArray (RGBA, длина = size*size*4)
  *   ИЛИ массив [r,g,b,a][] длиной size*size — годится оба варианта.
  */
-const MAX_Z_LEVELS = 6;
+const MAX_Z_LEVELS_DRAWING = 6;
+const MAX_Z_LEVELS_PHOTO = 10;
 
 export function pixelsToCubes(
   pixels: Uint8ClampedArray | number[][],
@@ -54,10 +54,8 @@ export function pixelsToCubes(
     uniqueColors.add(`${r},${g},${b}`);
   }
 
-  const photoMode = uniqueColors.size > MAX_Z_LEVELS;
-  const numLevels = Math.min(uniqueColors.size, MAX_Z_LEVELS);
-  const targetDepth = Math.max(2, size / 8);
-  const layerSpacing = numLevels > 1 ? Math.min(1.0, targetDepth / (numLevels - 1)) : 1.0;
+  const photoMode = uniqueColors.size > MAX_Z_LEVELS_DRAWING;
+  const layerSpacing = 1.0;
 
   // Для режима рисунка строим карту цвет → уровень (по яркости).
   let colorLayer: Map<string, number> | null = null;
@@ -73,7 +71,8 @@ export function pixelsToCubes(
     for (let i = 0; i < colors.length; i++) colorLayer.set(colors[i]![0], i);
   }
 
-  // Pass 2: строим кубы. В photo-mode Z от per-pixel яркости, иначе от цвета.
+  // Pass 2: строим кубы. В photo-mode каждая колонка заполняется от z=0
+  // до уровня яркости включительно — даёт LEGO-объём вместо плоской пластины.
   const out: Cube[] = [];
   let minX = Infinity, maxX = -Infinity;
   let minY = Infinity, maxY = -Infinity;
@@ -85,28 +84,36 @@ export function pixelsToCubes(
       const [r, g, b, a] = readPixel(idx);
       if (a < 16) continue;
 
-      let level: number;
-      if (photoMode) {
-        const lum = 0.2126 * r + 0.7152 * g + 0.0722 * b;
-        level = Math.min(MAX_Z_LEVELS - 1, Math.floor((lum / 256) * MAX_Z_LEVELS));
-      } else {
-        level = colorLayer!.get(`${r},${g},${b}`)!;
-      }
-
       const px = x - half + 0.5;
       const py = half - y - 0.5;
-      const pz = level * layerSpacing;
-      // Hex-строка: Three.js парсит как sRGB и корректно конвертит в linear
-      // (raw float setRGB → linear, после sRGB-вывода цвета бледнеют).
+      // Hex: Three.js парсит как sRGB и корректно конвертит в linear.
       const hex = `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`;
-      out.push({ pos: [px, py, pz], color: new THREE.Color(hex) });
+
+      if (photoMode) {
+        const lum = 0.2126 * r + 0.7152 * g + 0.0722 * b;
+        const topLevel = Math.min(
+          MAX_Z_LEVELS_PHOTO - 1,
+          Math.floor((lum / 256) * MAX_Z_LEVELS_PHOTO)
+        );
+        // Колонка от z=0 до topLevel (inclusive), как кирпичики LEGO на доске.
+        for (let lvl = 0; lvl <= topLevel; lvl++) {
+          const pz = lvl * layerSpacing;
+          out.push({ pos: [px, py, pz], color: new THREE.Color(hex) });
+          if (pz < minZ) minZ = pz;
+          if (pz > maxZ) maxZ = pz;
+        }
+      } else {
+        const level = colorLayer!.get(`${r},${g},${b}`)!;
+        const pz = level * layerSpacing;
+        out.push({ pos: [px, py, pz], color: new THREE.Color(hex) });
+        if (pz < minZ) minZ = pz;
+        if (pz > maxZ) maxZ = pz;
+      }
 
       if (px < minX) minX = px;
       if (px > maxX) maxX = px;
       if (py < minY) minY = py;
       if (py > maxY) maxY = py;
-      if (pz < minZ) minZ = pz;
-      if (pz > maxZ) maxZ = pz;
     }
   }
 
