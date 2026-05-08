@@ -38,7 +38,7 @@ export function StyledInstances({
 
   if (styleId === 'crystal') {
     return (
-      <Instances limit={4096} range={cubes.length}>
+      <Instances limit={65536} range={cubes.length}>
         <octahedronGeometry args={[0.65, 0]} />
         <meshPhysicalMaterial
           wireframe={wireframe}
@@ -62,7 +62,7 @@ export function StyledInstances({
 
   if (styleId === 'neon') {
     return (
-      <Instances limit={4096} range={cubes.length} castShadow={false} receiveShadow={false}>
+      <Instances limit={65536} range={cubes.length} castShadow={false} receiveShadow={false}>
         <boxGeometry args={[0.92, 0.92, 0.92]} />
         <meshBasicMaterial wireframe />
         {cubes.map((c, i) => (
@@ -74,7 +74,7 @@ export function StyledInstances({
 
   if (styleId === 'origami') {
     return (
-      <Instances limit={4096} range={cubes.length} castShadow receiveShadow>
+      <Instances limit={65536} range={cubes.length} castShadow receiveShadow>
         <planeGeometry args={[0.95, 0.95]} />
         <meshStandardMaterial
           wireframe={wireframe}
@@ -100,7 +100,7 @@ export function StyledInstances({
 
   if (styleId === 'mercury') {
     return (
-      <Instances limit={4096} range={cubes.length} castShadow receiveShadow>
+      <Instances limit={65536} range={cubes.length} castShadow receiveShadow>
         <sphereGeometry args={[0.7, 24, 18]} />
         <meshPhysicalMaterial
           wireframe={wireframe}
@@ -118,7 +118,7 @@ export function StyledInstances({
 
   if (styleId === 'plush') {
     return (
-      <Instances limit={4096} range={cubes.length} castShadow receiveShadow>
+      <Instances limit={65536} range={cubes.length} castShadow receiveShadow>
         <sphereGeometry args={[0.55, 16, 14]} />
         <meshStandardMaterial wireframe={wireframe} roughness={0.85} metalness={0} />
         {cubes.map((c, i) => {
@@ -131,7 +131,7 @@ export function StyledInstances({
 
   // voxel
   return (
-    <Instances limit={4096} range={cubes.length} castShadow receiveShadow>
+    <Instances limit={65536} range={cubes.length} castShadow receiveShadow>
       <boxGeometry args={[0.95, 0.95, 0.95]} />
       <meshStandardMaterial wireframe={wireframe} roughness={0.95} metalness={0} />
       {cubes.map((c, i) => (
