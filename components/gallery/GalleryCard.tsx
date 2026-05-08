@@ -6,6 +6,7 @@ import { Heart, Recycle, Maximize2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
+import { Tooltip } from '@/components/ui/tooltip';
 import { ModelPreview } from './ModelPreview';
 import { STYLE_PRESETS } from '@/lib/styles';
 import type { StyleId } from '@/lib/validation';
@@ -118,20 +119,26 @@ export function GalleryCard({
         </Dialog>
       </div>
       <div className="flex items-center justify-between p-3">
-        <button
-          onClick={onLike}
-          className={cn(
-            'flex items-center gap-1 text-sm rounded-md px-2 h-8 hover:bg-border transition-colors',
-            liked && 'text-pink-400'
-          )}
-        >
-          <Heart className={cn('h-4 w-4', liked && 'fill-pink-400')} />
-          <span>{count}</span>
-        </button>
-        <Button variant="ghost" size="sm" onClick={onRemix}>
-          <Recycle className="h-4 w-4" />
-          Remix
-        </Button>
+        <Tooltip content={liked ? 'Remove like' : 'Like this work'}>
+          <button
+            onClick={onLike}
+            aria-label={liked ? 'Remove like' : 'Like this work'}
+            aria-pressed={liked}
+            className={cn(
+              'flex items-center gap-1 text-sm rounded-md px-2 h-8 hover:bg-border transition-colors',
+              liked && 'text-pink-400'
+            )}
+          >
+            <Heart className={cn('h-4 w-4', liked && 'fill-pink-400')} />
+            <span>{count}</span>
+          </button>
+        </Tooltip>
+        <Tooltip content="Open in editor as a starting point">
+          <Button variant="ghost" size="sm" onClick={onRemix}>
+            <Recycle className="h-4 w-4" />
+            Remix
+          </Button>
+        </Tooltip>
       </div>
     </div>
   );

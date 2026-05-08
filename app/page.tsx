@@ -9,7 +9,6 @@ import { PressurePanel } from '@/components/editor/PressurePanel';
 import { ModelViewer } from '@/components/viewer/ModelViewer';
 import { StyleSelector } from '@/components/viewer/StyleSelector';
 import { useEditor, pixelsToFlat } from '@/lib/store';
-import { TooltipProvider } from '@/components/ui/tooltip';
 import { Button } from '@/components/ui/button';
 import { GalleryHorizontal } from 'lucide-react';
 import { toast } from '@/components/Toaster';
@@ -18,11 +17,9 @@ type AppConfig = { hasBlob: boolean; hasPostgres: boolean };
 
 export default function HomePage() {
   return (
-    <TooltipProvider>
-      <Suspense fallback={null}>
-        <Studio />
-      </Suspense>
-    </TooltipProvider>
+    <Suspense fallback={null}>
+      <Studio />
+    </Suspense>
   );
 }
 
