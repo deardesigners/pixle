@@ -8,14 +8,20 @@ export type Cube = {
 export type FitInfo = { cx: number; cy: number; cz: number; scale: number };
 
 /**
- * Строит массив кубов из пиксельных данных. Z-слои назначаются по яркости
- * цвета (rec.709), от тёмного к светлому — даёт читаемый рельеф.
+ * Строит массив кубов из пиксельных данных. Z-слои назначаются по яркости.
  *
- * Цвета группируются в максимум MAX_Z_LEVELS бакетов, чтобы импорт фото
- * (24+ цвета после квантизации) не превращался в «лестницу из 24 страт».
- * Для рисунка с ≤MAX_Z_LEVELS цветов поведение прежнее — каждый цвет
- * получает свой Z. Для фото близкие по яркости цвета сливаются в один
- * слой и модель выглядит как 6-уровневый рельеф вместо 24-уровневой стопки.
+ * Два режима — определяются автоматически по числу уникальных цветов:
+ *
+ *   1. Рисунок (≤MAX_Z_LEVELS цветов): один цвет → один Z. Цвета сортируются
+ *      по rec.709-яркости от тёмного к светлому. Это даёт чистые «слои» как
+ *      и было раньше — фон/тело/детали стоят на своих уровнях.
+ *
+ *   2. Фото / импорт (>MAX_Z_LEVELS цветов): Z считается per-pixel — у каждого
+ *      пикселя свой бакет (0..MAX_Z_LEVELS-1) по его собственной яркости.
+ *      Это превращает портрет в осмысленный рельеф (лоб/щёки выпирают,
+ *      волосы/глаза задвинуты), а не в стопку пластин по цвету. Цветовая
+ *      палитра при этом не диктует геометрию — близкие по тону, но разные
+ *      по цвету пиксели (волосы и тёмная кофта) могут оказаться на одном Z.
  *
  * pixels: Uint8ClampedArray (RGBA, длина = size*size*4)
  *   ИЛИ массив [r,g,b,a][] длиной size*size — годится оба варианта.
@@ -40,36 +46,34 @@ export function pixelsToCubes(
     return [buf[i] ?? 0, buf[i + 1] ?? 0, buf[i + 2] ?? 0, buf[i + 3] ?? 0];
   };
 
-  // Pass 1: собираем уникальные непрозрачные цвета и их яркость.
-  const colorMeta = new Map<string, { r: number; g: number; b: number; lum: number }>();
+  // Pass 1: собираем уникальные непрозрачные цвета.
+  const uniqueColors = new Set<string>();
   for (let i = 0; i < size * size; i++) {
     const [r, g, b, a] = readPixel(i);
     if (a < 16) continue;
-    const key = `${r},${g},${b}`;
-    if (!colorMeta.has(key)) {
-      const lum = 0.2126 * r + 0.7152 * g + 0.0722 * b;
-      colorMeta.set(key, { r, g, b, lum });
-    }
+    uniqueColors.add(`${r},${g},${b}`);
   }
 
-  // Сортируем по яркости. Если цветов мало (рисунок) — каждый получает свой Z.
-  // Если много (фото) — равномерно распределяем по MAX_Z_LEVELS бакетам.
-  const sortedColors = Array.from(colorMeta.entries()).sort((a, b) => a[1].lum - b[1].lum);
-  const useBuckets = sortedColors.length > MAX_Z_LEVELS;
-  const numLevels = Math.min(sortedColors.length, MAX_Z_LEVELS);
-  const colorLayer = new Map<string, number>();
-  for (let i = 0; i < sortedColors.length; i++) {
-    const level = useBuckets
-      ? Math.min(MAX_Z_LEVELS - 1, Math.floor((i / sortedColors.length) * MAX_Z_LEVELS))
-      : i;
-    colorLayer.set(sortedColors[i]![0], level);
-  }
-
+  const photoMode = uniqueColors.size > MAX_Z_LEVELS;
+  const numLevels = Math.min(uniqueColors.size, MAX_Z_LEVELS);
   const targetDepth = Math.max(2, size / 8);
-  const layerSpacing =
-    numLevels > 1 ? Math.min(1.0, targetDepth / (numLevels - 1)) : 1.0;
+  const layerSpacing = numLevels > 1 ? Math.min(1.0, targetDepth / (numLevels - 1)) : 1.0;
 
-  // Pass 2: строим кубы.
+  // Для режима рисунка строим карту цвет → уровень (по яркости).
+  let colorLayer: Map<string, number> | null = null;
+  if (!photoMode) {
+    const colors: Array<[string, number]> = [];
+    for (const key of uniqueColors) {
+      const [r, g, b] = key.split(',').map(Number) as [number, number, number];
+      const lum = 0.2126 * r + 0.7152 * g + 0.0722 * b;
+      colors.push([key, lum]);
+    }
+    colors.sort((a, b) => a[1] - b[1]);
+    colorLayer = new Map<string, number>();
+    for (let i = 0; i < colors.length; i++) colorLayer.set(colors[i]![0], i);
+  }
+
+  // Pass 2: строим кубы. В photo-mode Z от per-pixel яркости, иначе от цвета.
   const out: Cube[] = [];
   let minX = Infinity, maxX = -Infinity;
   let minY = Infinity, maxY = -Infinity;
@@ -80,10 +84,18 @@ export function pixelsToCubes(
       const idx = y * size + x;
       const [r, g, b, a] = readPixel(idx);
       if (a < 16) continue;
-      const layer = colorLayer.get(`${r},${g},${b}`)!;
+
+      let level: number;
+      if (photoMode) {
+        const lum = 0.2126 * r + 0.7152 * g + 0.0722 * b;
+        level = Math.min(MAX_Z_LEVELS - 1, Math.floor((lum / 256) * MAX_Z_LEVELS));
+      } else {
+        level = colorLayer!.get(`${r},${g},${b}`)!;
+      }
+
       const px = x - half + 0.5;
       const py = half - y - 0.5;
-      const pz = layer * layerSpacing;
+      const pz = level * layerSpacing;
       // Hex-строка: Three.js парсит как sRGB и корректно конвертит в linear
       // (raw float setRGB → linear, после sRGB-вывода цвета бледнеют).
       const hex = `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`;
