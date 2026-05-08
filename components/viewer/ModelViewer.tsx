@@ -2,16 +2,18 @@
 
 import { Suspense, useEffect, useMemo, useRef, useState } from 'react';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
-import { OrbitControls, Environment, ContactShadows, Instances, Instance } from '@react-three/drei';
+import { OrbitControls, Environment, ContactShadows } from '@react-three/drei';
 import * as THREE from 'three';
 import { useEditor, pixelsToFlat } from '@/lib/store';
-import { STYLE_PRESETS } from '@/lib/styles';
+import { STYLE_PRESETS, STYLE_RENDER } from '@/lib/styles';
+import type { StyleId } from '@/lib/validation';
 import { Button } from '@/components/ui/button';
 import { RefreshCw, Layers, Save } from 'lucide-react';
 import { toast } from '@/components/Toaster';
 import { cn } from '@/lib/utils';
 import { pixelsToCubes } from '@/lib/pixelToCubes';
 import { getClientId } from '@/lib/clientId';
+import { StyledInstances } from './StyledInstances';
 
 export function ModelViewer() {
   const { pixels, size, currentStyle } = useEditor();
@@ -25,6 +27,9 @@ export function ModelViewer() {
     () => Array.from(pixels).every((v, i) => (i % 4 === 3 ? v === 0 : true)),
     [pixels]
   );
+
+  const render = STYLE_RENDER[currentStyle];
+  const isDark = currentStyle === 'crystal' || currentStyle === 'neon' || currentStyle === 'mercury';
 
   const onPublish = async () => {
     if (isEmpty || publishing) return;
@@ -88,36 +93,51 @@ export function ModelViewer() {
         gl={{
           preserveDrawingBuffer: true,
           antialias: true,
-          // NoToneMapping сохраняет цвета 1:1; ACESFilmic иначе бледнит насыщенные.
           toneMapping: THREE.NoToneMapping
         }}
         camera={{ position: [3, 2.5, 3], fov: 45 }}
         shadows
         flat
       >
-        <color attach="background" args={['#F3F0FF']} />
-        <ambientLight intensity={1.2} />
-        <directionalLight position={[4, 6, 4]} intensity={0.35} castShadow />
+        <color attach="background" args={[render.background]} />
+        <ambientLight intensity={render.ambient} />
+        {render.directional > 0 && (
+          <directionalLight position={[4, 6, 4]} intensity={render.directional} castShadow />
+        )}
         <Suspense fallback={null}>
-          <Environment preset="apartment" environmentIntensity={0.05} background={false} />
+          <Environment preset={render.envPreset} environmentIntensity={render.envIntensity} background={false} />
           <LivePixelModel
             styleId={currentStyle}
             wireframe={wireframe}
             resetSignal={resetSignal}
             registerCapture={(fn) => (captureRef.current = fn)}
           />
-          <ContactShadows position={[0, -1.05, 0]} opacity={0.5} scale={6} blur={2.4} far={2} />
+          {render.contactShadow > 0 && (
+            <ContactShadows position={[0, -1.05, 0]} opacity={render.contactShadow} scale={6} blur={2.4} far={2} />
+          )}
         </Suspense>
         <OrbitControls makeDefault enablePan={false} minDistance={2} maxDistance={8} />
       </Canvas>
 
-      <div className="absolute top-5 left-5 cs-label">Render</div>
+      <div
+        className={cn(
+          'absolute top-5 left-5 text-[14px] font-medium tracking-tight',
+          isDark ? 'text-white/55' : 'cs-label'
+        )}
+      >
+        Render
+      </div>
 
       <div className="absolute top-4 right-4 flex flex-col gap-1.5">
         <button
           onClick={() => setResetSignal((s) => s + 1)}
           aria-label="Reset camera"
-          className="h-9 w-9 inline-flex items-center justify-center rounded-full border-[1.5px] border-text/15 bg-white/70 backdrop-blur text-text hover:border-text hover:bg-text hover:text-white transition-colors"
+          className={cn(
+            'h-9 w-9 inline-flex items-center justify-center rounded-full border-[1.5px] backdrop-blur transition-colors',
+            isDark
+              ? 'border-white/25 bg-white/10 text-white hover:bg-white/20'
+              : 'border-text/15 bg-white/70 text-text hover:border-text hover:bg-text hover:text-white'
+          )}
         >
           <RefreshCw className="h-4 w-4" />
         </button>
@@ -125,10 +145,12 @@ export function ModelViewer() {
           onClick={() => setWireframe((w) => !w)}
           aria-label="Toggle wireframe"
           className={cn(
-            'h-9 w-9 inline-flex items-center justify-center rounded-full border-[1.5px] bg-white/70 backdrop-blur transition-colors',
+            'h-9 w-9 inline-flex items-center justify-center rounded-full border-[1.5px] backdrop-blur transition-colors',
             wireframe
               ? 'border-text bg-accent text-accent-bold'
-              : 'border-text/15 text-text hover:border-text hover:bg-text hover:text-white'
+              : isDark
+                ? 'border-white/25 bg-white/10 text-white hover:bg-white/20'
+                : 'border-text/15 bg-white/70 text-text hover:border-text hover:bg-text hover:text-white'
           )}
         >
           <Layers className="h-4 w-4" />
@@ -160,7 +182,7 @@ function LivePixelModel({
   resetSignal,
   registerCapture
 }: {
-  styleId: keyof typeof STYLE_PRESETS;
+  styleId: StyleId;
   wireframe: boolean;
   resetSignal: number;
   registerCapture: (fn: () => string | null) => void;
@@ -195,39 +217,16 @@ function LivePixelModel({
     );
   }
 
-  const isHolo = styleId === 'holographic';
-  const isClay = styleId === 'claymation';
-  const isLowPoly = styleId === 'lowpoly';
-
   return (
     <group ref={groupRef}>
       <group scale={fit.scale} position={[-fit.cx * fit.scale, -fit.cy * fit.scale, -fit.cz * fit.scale]}>
-        <Instances limit={4096} range={cubes.length} castShadow receiveShadow>
-          {isClay ? (
-            <sphereGeometry args={[0.55, 12, 12]} />
-          ) : (
-            <boxGeometry args={[0.95, 0.95, 0.95]} />
-          )}
-          <meshStandardMaterial
-            wireframe={wireframe}
-            transparent={isHolo}
-            opacity={isHolo ? 0.7 : 1}
-            emissive={isHolo ? new THREE.Color('#7dd3fc') : new THREE.Color('#000000')}
-            emissiveIntensity={isHolo ? 0.4 : 0}
-            roughness={isHolo ? 0.6 : 0.95}
-            metalness={0}
-            flatShading={isLowPoly}
-          />
-          {cubes.map((c, i) => (
-            <Instance key={i} position={c.pos} color={c.color} />
-          ))}
-        </Instances>
+        <StyledInstances cubes={cubes} styleId={styleId} wireframe={wireframe} />
       </group>
     </group>
   );
 }
 
-function useStyleAnimation(ref: React.RefObject<THREE.Group>, styleId: keyof typeof STYLE_PRESETS) {
+function useStyleAnimation(ref: React.RefObject<THREE.Group>, styleId: StyleId) {
   const t0 = useRef(0);
   const flickerRef = useRef(0);
   useFrame((_, dt) => {
@@ -242,32 +241,37 @@ function useStyleAnimation(ref: React.RefObject<THREE.Group>, styleId: keyof typ
         g.rotation.y += dt * 0.2;
         break;
       case 'rotate':
-        g.rotation.y += dt * 0.5;
+        g.rotation.y += dt * 0.3;
+        g.position.y = Math.sin(t * 1.0) * 0.05;
         break;
-      case 'pulse': {
-        const s = 1 + Math.sin(t * 2.5) * 0.02;
+      case 'breathe': {
+        const s = 1 + Math.sin(t * 2.2) * 0.04;
         g.scale.set(s, s, s);
+        g.rotation.y += dt * 0.18;
         break;
       }
       case 'tiltSpin':
-        g.rotation.y += dt * 0.4;
+        g.rotation.y += dt * 0.45;
         g.rotation.z = Math.sin(t * 1.6) * 0.087;
         break;
-      case 'flicker':
+      case 'pulse':
         g.rotation.y += dt * 0.25;
         flickerRef.current += dt;
-        if (flickerRef.current > 0.1) {
-          g.traverse((o) => {
-            if (o instanceof THREE.Mesh && o.material instanceof THREE.MeshStandardMaterial) {
-              o.material.emissiveIntensity = 0.2 + Math.random() * 0.5;
-            }
-          });
+        if (flickerRef.current > 0.08) {
+          // Микро-пульсация яркости через ambient — для wireframe-неона
+          // (mesh basic не реагирует на свет, но wireframe с basic тоже —
+          // вместо этого пульсируем масштаб edges-объёма)
+          const s = 1 + Math.sin(t * 6) * 0.015;
+          g.scale.set(s, s, s);
           flickerRef.current = 0;
         }
         break;
-      case 'static':
-        g.rotation.y += dt * 0.05;
+      case 'flutter': {
+        g.rotation.y += dt * 0.15;
+        g.rotation.z = Math.sin(t * 2.4) * 0.04;
+        g.position.y = Math.sin(t * 1.8) * 0.04;
         break;
+      }
     }
   });
 }

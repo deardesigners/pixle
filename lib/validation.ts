@@ -2,11 +2,11 @@ import { z } from 'zod';
 
 export const StyleIdSchema = z.enum([
   'voxel',
-  'lowpoly',
-  'claymation',
-  'toon',
-  'holographic',
-  'stone'
+  'plush',
+  'crystal',
+  'neon',
+  'origami',
+  'mercury'
 ]);
 
 export const PixelDataSchema = z.object({

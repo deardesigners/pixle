@@ -34,7 +34,10 @@ export function GalleryCard({
   const [liked, setLiked] = useState(item.liked_by_me);
   const [count, setCount] = useState(item.like_count);
   const [, startTransition] = useTransition();
-  const preset = STYLE_PRESETS[item.style_id];
+  // Старые записи в БД могут хранить style_id, которого нет в текущем enum —
+  // фолбэк на voxel, чтобы карточка не падала на runtime.
+  const preset = STYLE_PRESETS[item.style_id] ?? STYLE_PRESETS.voxel;
+  const safeStyleId = STYLE_PRESETS[item.style_id] ? item.style_id : 'voxel';
 
   const onLike = () => {
     const prevLiked = liked;
@@ -87,7 +90,7 @@ export function GalleryCard({
         )}
         {showPreview && hasModel && (
           <div className="absolute inset-0">
-            <ModelPreview pixelData={item.pixel_data} />
+            <ModelPreview pixelData={item.pixel_data} styleId={safeStyleId} />
           </div>
         )}
         <Badge className="absolute top-2 left-2">
@@ -103,7 +106,7 @@ export function GalleryCard({
           <DialogContent className="p-0">
             <div className="aspect-square w-full bg-bg">
               {hasModel ? (
-                <ModelPreview pixelData={item.pixel_data} />
+                <ModelPreview pixelData={item.pixel_data} styleId={safeStyleId} />
               ) : thumb ? (
                 <Image src={thumb} alt={preset.label} fill className="object-contain" unoptimized />
               ) : null}
