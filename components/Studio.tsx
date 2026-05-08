@@ -76,7 +76,7 @@ function StudioInner() {
             <span className="cs-label hidden sm:inline">Pixel art into 3D</span>
           </div>
           <Link href="/gallery">
-            <Button variant="secondary" size="sm">
+            <Button variant="default" size="sm">
               <GalleryHorizontal className="h-3.5 w-3.5" />
               Gallery
             </Button>
