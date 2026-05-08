@@ -8,19 +8,20 @@ export type Cube = {
 export type FitInfo = { cx: number; cy: number; cz: number; scale: number };
 
 /**
- * Строит массив кубов из пиксельных данных. Каждый уникальный цвет — отдельный
- * Z-слой; слои упорядочены по яркости (rec.709 luminance), от тёмного к светлому.
- * Это даёт осмысленный рельеф и для рисунков, и для импорта фото — иначе при
- * 10+ цветах (например, после квантизации портрета) сцена сваливалась
- * в произвольную «лестницу пластин» по порядку обхода.
+ * Строит массив кубов из пиксельных данных. Z-слои назначаются по яркости
+ * цвета (rec.709), от тёмного к светлому — даёт читаемый рельеф.
  *
- * Глубина модели нормирована к ~size/6 — небольшое количество цветов получает
- * привычное расстояние 1.0, а большое (импорт) сжимается, чтобы модель не
- * вытягивалась в косой пандус.
+ * Цвета группируются в максимум MAX_Z_LEVELS бакетов, чтобы импорт фото
+ * (24+ цвета после квантизации) не превращался в «лестницу из 24 страт».
+ * Для рисунка с ≤MAX_Z_LEVELS цветов поведение прежнее — каждый цвет
+ * получает свой Z. Для фото близкие по яркости цвета сливаются в один
+ * слой и модель выглядит как 6-уровневый рельеф вместо 24-уровневой стопки.
  *
  * pixels: Uint8ClampedArray (RGBA, длина = size*size*4)
  *   ИЛИ массив [r,g,b,a][] длиной size*size — годится оба варианта.
  */
+const MAX_Z_LEVELS = 6;
+
 export function pixelsToCubes(
   pixels: Uint8ClampedArray | number[][],
   size: number
@@ -51,15 +52,22 @@ export function pixelsToCubes(
     }
   }
 
-  // Сортируем цвета по яркости и присваиваем Z-индекс.
+  // Сортируем по яркости. Если цветов мало (рисунок) — каждый получает свой Z.
+  // Если много (фото) — равномерно распределяем по MAX_Z_LEVELS бакетам.
   const sortedColors = Array.from(colorMeta.entries()).sort((a, b) => a[1].lum - b[1].lum);
+  const useBuckets = sortedColors.length > MAX_Z_LEVELS;
+  const numLevels = Math.min(sortedColors.length, MAX_Z_LEVELS);
   const colorLayer = new Map<string, number>();
-  for (let i = 0; i < sortedColors.length; i++) colorLayer.set(sortedColors[i]![0], i);
+  for (let i = 0; i < sortedColors.length; i++) {
+    const level = useBuckets
+      ? Math.min(MAX_Z_LEVELS - 1, Math.floor((i / sortedColors.length) * MAX_Z_LEVELS))
+      : i;
+    colorLayer.set(sortedColors[i]![0], level);
+  }
 
-  const layerCount = sortedColors.length;
-  const targetDepth = Math.max(2, size / 6);
+  const targetDepth = Math.max(2, size / 8);
   const layerSpacing =
-    layerCount > 1 ? Math.min(1.0, targetDepth / (layerCount - 1)) : 1.0;
+    numLevels > 1 ? Math.min(1.0, targetDepth / (numLevels - 1)) : 1.0;
 
   // Pass 2: строим кубы.
   const out: Cube[] = [];
