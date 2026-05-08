@@ -9,7 +9,7 @@ const SITE_URL = 'https://pixle.art';
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
-    default: 'Pixle — Pixel Art to 3D Studio',
+    default: 'Pixle • Pixel art into 3D',
     template: '%s · Pixle'
   },
   description:
@@ -35,14 +35,14 @@ export const metadata: Metadata = {
     type: 'website',
     url: SITE_URL,
     siteName: 'Pixle',
-    title: 'Pixle — Pixel Art to 3D Studio',
+    title: 'Pixle • Pixel art into 3D',
     description:
       'Draw pixel art and turn it into animated 3D models. Free, online, no install.',
     locale: 'en_US'
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Pixle — Pixel Art to 3D Studio',
+    title: 'Pixle • Pixel art into 3D',
     description:
       'Draw pixel art and turn it into animated 3D models. Free, online, no install.'
   },
