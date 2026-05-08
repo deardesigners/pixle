@@ -5,17 +5,11 @@ import { Tooltip } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
 
 const STYLE_HINTS: Record<string, string> = {
-  voxel: 'Cubic Minecraft-style blocks',
-  lowpoly: 'Faceted, flat-shaded low polygon',
-  claymation: 'Soft plasticine sculpture',
-  toon: 'Cel-shaded with bold outlines',
-  holographic: 'Translucent iridescent emissive',
-  stone: 'Weathered granite statue',
-  plush: 'Soft rounded plush surface',
-  crystal: 'Translucent faceted crystal',
-  neon: 'Glowing neon emissive',
-  origami: 'Folded paper, low-poly facets',
-  mercury: 'Liquid metal, polished'
+  voxel: 'Chunky stacked cubes',
+  plush: 'Soft squishy spheres',
+  crystal: 'Refractive faceted glass',
+  neon: 'Glowing wireframe in the dark',
+  mercury: 'Liquid chrome blob'
 };
 
 export function StyleSelector() {
@@ -27,7 +21,7 @@ export function StyleSelector() {
         <span className="cs-label">Style</span>
         <span className="cs-label">{STYLE_PRESETS[currentStyle].label}</span>
       </div>
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2.5">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2.5">
         {STYLE_LIST.map((s) => (
           <Tooltip key={s.id} content={STYLE_HINTS[s.id] ?? s.description}>
             <button

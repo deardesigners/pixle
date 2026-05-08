@@ -5,7 +5,6 @@ export const StyleIdSchema = z.enum([
   'plush',
   'crystal',
   'neon',
-  'origami',
   'mercury'
 ]);
 

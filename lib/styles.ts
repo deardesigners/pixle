@@ -45,13 +45,6 @@ export const STYLE_PRESETS: Record<StyleId, StylePreset> = {
     description: 'Glowing wireframe in the dark',
     idleAnimation: 'pulse'
   },
-  origami: {
-    id: 'origami',
-    label: 'Origami',
-    emoji: '📄',
-    description: 'Folded matte paper',
-    idleAnimation: 'flutter'
-  },
   mercury: {
     id: 'mercury',
     label: 'Mercury',
@@ -77,6 +70,5 @@ export const STYLE_RENDER: Record<StyleId, StyleRenderConfig> = {
   plush:   { background: '#FFE4E9', ambient: 1.5, directional: 0.25, envIntensity: 0.1,  envPreset: 'apartment', contactShadow: 0.35 },
   crystal: { background: '#0F1230', ambient: 0.35, directional: 0.4, envIntensity: 1.8,  envPreset: 'sunset',    contactShadow: 0 },
   neon:    { background: '#07070F', ambient: 1.8, directional: 0.0, envIntensity: 0,    envPreset: 'night',     contactShadow: 0 },
-  origami: { background: '#FAF6EC', ambient: 0.85, directional: 0.85, envIntensity: 0.15, envPreset: 'apartment', contactShadow: 0.4 },
   mercury: { background: '#161B26', ambient: 0.3, directional: 0.45, envIntensity: 1.6,  envPreset: 'warehouse', contactShadow: 0 }
 };

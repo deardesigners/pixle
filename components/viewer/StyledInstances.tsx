@@ -17,26 +17,6 @@ export function StyledInstances({
   styleId: StyleId;
   wireframe?: boolean;
 }) {
-  // Стабильные псевдослучайные смещения на инстанс (origami flutter).
-  // Завязаны на индекс — не мерцают между ререндерами.
-  const variants = useMemo(
-    () =>
-      cubes.map((_, i) => {
-        const r = (n: number) => {
-          const x = Math.sin(i * 91.13 + n * 17.7) * 43758.5453;
-          return x - Math.floor(x);
-        };
-        return {
-          rx: (r(1) - 0.5) * 0.5,
-          ry: (r(2) - 0.5) * 0.5,
-          rz: (r(3) - 0.5) * 0.5,
-          phase: r(4) * Math.PI * 2,
-          scale: 0.85 + r(5) * 0.3
-        };
-      }),
-    [cubes]
-  );
-
   // Smooth-стили получают монолитный merged mesh с дедупликацией вершин и
   // сглаженными нормалями — выглядят как цельная форма, не россыпь кубов.
   const isSmoothStyle =
@@ -121,32 +101,6 @@ export function StyledInstances({
         {cubes.map((c, i) => (
           <Instance key={i} position={c.pos} color={c.color} />
         ))}
-      </Instances>
-    );
-  }
-
-  if (styleId === 'origami') {
-    return (
-      <Instances limit={65536} range={cubes.length} castShadow receiveShadow>
-        <planeGeometry args={[0.95, 0.95]} />
-        <meshStandardMaterial
-          wireframe={wireframe}
-          roughness={1}
-          metalness={0}
-          side={THREE.DoubleSide}
-          flatShading
-        />
-        {cubes.map((c, i) => {
-          const v = variants[i]!;
-          return (
-            <Instance
-              key={i}
-              position={c.pos}
-              color={c.color}
-              rotation={[v.rx * 0.6, v.ry * 0.6, v.rz * 0.4]}
-            />
-          );
-        })}
       </Instances>
     );
   }
