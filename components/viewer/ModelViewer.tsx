@@ -7,6 +7,7 @@ import * as THREE from 'three';
 import { useEditor, pixelsToFlat } from '@/lib/store';
 import { STYLE_PRESETS } from '@/lib/styles';
 import { Button } from '@/components/ui/button';
+import { Tooltip } from '@/components/ui/tooltip';
 import { RefreshCw, Layers, Save } from 'lucide-react';
 import { toast } from '@/components/Toaster';
 import { cn } from '@/lib/utils';
@@ -114,41 +115,58 @@ export function ModelViewer() {
       <div className="absolute top-5 left-5 cs-label">Render</div>
 
       <div className="absolute top-4 right-4 flex flex-col gap-1.5">
-        <button
-          onClick={() => setResetSignal((s) => s + 1)}
-          aria-label="Reset camera"
-          className="h-9 w-9 inline-flex items-center justify-center rounded-full border-[1.5px] border-text/15 bg-white/70 backdrop-blur text-text hover:border-text hover:bg-text hover:text-white transition-colors"
-        >
-          <RefreshCw className="h-4 w-4" />
-        </button>
-        <button
-          onClick={() => setWireframe((w) => !w)}
-          aria-label="Toggle wireframe"
-          className={cn(
-            'h-9 w-9 inline-flex items-center justify-center rounded-full border-[1.5px] bg-white/70 backdrop-blur transition-colors',
-            wireframe
-              ? 'border-text bg-accent text-accent-bold'
-              : 'border-text/15 text-text hover:border-text hover:bg-text hover:text-white'
-          )}
-        >
-          <Layers className="h-4 w-4" />
-        </button>
+        <Tooltip content="Reset camera view">
+          <button
+            onClick={() => setResetSignal((s) => s + 1)}
+            aria-label="Reset camera view"
+            className="h-9 w-9 inline-flex items-center justify-center rounded-full border-[1.5px] border-text/15 bg-white/70 backdrop-blur text-text hover:border-text hover:bg-text hover:text-white transition-colors"
+          >
+            <RefreshCw className="h-4 w-4" />
+          </button>
+        </Tooltip>
+        <Tooltip content={wireframe ? 'Hide wireframe' : 'Show wireframe'}>
+          <button
+            onClick={() => setWireframe((w) => !w)}
+            aria-label={wireframe ? 'Hide wireframe' : 'Show wireframe'}
+            aria-pressed={wireframe}
+            className={cn(
+              'h-9 w-9 inline-flex items-center justify-center rounded-full border-[1.5px] bg-white/70 backdrop-blur transition-colors',
+              wireframe
+                ? 'border-text bg-accent text-accent-bold'
+                : 'border-text/15 text-text hover:border-text hover:bg-text hover:text-white'
+            )}
+          >
+            <Layers className="h-4 w-4" />
+          </button>
+        </Tooltip>
       </div>
 
       <div className="absolute bottom-4 left-4 right-4 flex flex-wrap gap-2">
-        <Button variant="default" onClick={onPublish} disabled={isEmpty || publishing || published}>
-          {publishing ? (
-            <>
-              <span className="flex gap-1"><span className="ai-dot" /><span className="ai-dot" /><span className="ai-dot" /></span>
-              <span>Publishing</span>
-            </>
-          ) : (
-            <>
-              <Save className="h-[18px] w-[18px]" />
-              {published ? 'Published' : 'Publish'}
-            </>
-          )}
-        </Button>
+        <Tooltip
+          content={
+            isEmpty
+              ? 'Draw something first'
+              : published
+                ? 'Already published to gallery'
+                : publishing
+                  ? 'Saving to gallery…'
+                  : 'Publish to public gallery'
+          }
+        >
+          <Button variant="default" onClick={onPublish} disabled={isEmpty || publishing || published}>
+            {publishing ? (
+              <>
+                <span className="flex gap-1"><span className="ai-dot" /><span className="ai-dot" /><span className="ai-dot" /></span>
+                <span>Publishing</span>
+              </>
+            ) : (
+              <>
+                <Save className="h-[18px] w-[18px]" />
+                {published ? 'Published' : 'Publish'}
+              </>
+            )}
+          </Button>
+        </Tooltip>
       </div>
     </div>
   );

@@ -59,18 +59,20 @@ export function Toolbar() {
         <span className="cs-label">Size</span>
         <div className="flex items-center gap-1.5">
           {[16, 32, 64].map((s) => (
-            <button
-              key={s}
-              onClick={() => setSize(s as 16 | 32 | 64)}
-              className={cn(
-                'h-10 min-w-[44px] px-3.5 text-[14px] font-semibold leading-none rounded-pill transition-colors border-[1.5px]',
-                size === s
-                  ? 'bg-text text-white border-text'
-                  : 'bg-transparent border-text/15 text-text hover:border-text'
-              )}
-            >
-              {s}
-            </button>
+            <Tooltip key={s} content={`Canvas ${s}×${s} · resets drawing`}>
+              <button
+                onClick={() => setSize(s as 16 | 32 | 64)}
+                aria-label={`Canvas size ${s} by ${s}`}
+                className={cn(
+                  'h-10 min-w-[44px] px-3.5 text-[14px] font-semibold leading-none rounded-pill transition-colors border-[1.5px]',
+                  size === s
+                    ? 'bg-text text-white border-text'
+                    : 'bg-transparent border-text/15 text-text hover:border-text'
+                )}
+              >
+                {s}
+              </button>
+            </Tooltip>
           ))}
         </div>
       </div>
