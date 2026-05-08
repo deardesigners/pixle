@@ -26,7 +26,10 @@ export type FitInfo = { cx: number; cy: number; cz: number; scale: number };
  *   ИЛИ массив [r,g,b,a][] длиной size*size — годится оба варианта.
  */
 const MAX_Z_LEVELS_DRAWING = 6;
-const MAX_Z_LEVELS_PHOTO = 10;
+// 4 уровня для фото: достаточно для LEGO-рельефа (лоб/щёки выпирают, глаза
+// утоплены), но не превращает модель в «гребёнку» при повороте камеры —
+// глубина ~4 при ширине ~64, аспект 1:16, читается как «тиснёная пластина».
+const MAX_Z_LEVELS_PHOTO = 4;
 
 export function pixelsToCubes(
   pixels: Uint8ClampedArray | number[][],
