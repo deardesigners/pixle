@@ -1,7 +1,7 @@
 import { ImageResponse } from 'next/og';
 
 export const runtime = 'edge';
-export const alt = 'Pixle — Pixel Art to 3D Studio';
+export const alt = 'Pixle • Pixel art into 3D';
 export const size = { width: 1200, height: 630 };
 export const contentType = 'image/png';
 
