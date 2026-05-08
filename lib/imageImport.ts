@@ -14,8 +14,13 @@
  */
 
 const TARGET_SIZE = 64;
-const PALETTE_SIZE = 16;
-const EDGE_DOMINANCE_THRESHOLD = 0.78;
+// 24 цвета — компромисс: достаточно детализации для портрета (кожа+волосы+тени),
+// при этом 3D-модель не превращается в «лестницу из 50 пластин» — слои в
+// pixelsToCubes теперь нормированы по глубине, но всё равно лучше не плодить.
+const PALETTE_SIZE = 24;
+// 0.65 вместо 0.78: портрет на чистом фоне часто имеет ~70% края «фоновых»
+// пикселей (волосы/плечо съедают остальное), при 0.78 фон не убирался.
+const EDGE_DOMINANCE_THRESHOLD = 0.65;
 const EDGE_TOLERANCE = 36; // RGB-Euclidean. ≈ jpeg-noise + лёгкие тени по фону.
 const EDGE_TOLERANCE_SQ = EDGE_TOLERANCE * EDGE_TOLERANCE;
 
