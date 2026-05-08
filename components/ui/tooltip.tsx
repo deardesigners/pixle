@@ -19,7 +19,7 @@ export function Tooltip({
         <TooltipPrimitive.Content
           sideOffset={6}
           className={cn(
-            'z-50 rounded-md bg-panel border border-border px-2 py-1 text-xs text-white shadow-lg'
+            'z-50 rounded-md bg-text text-bg border border-text px-2.5 py-1.5 text-[12px] font-medium tracking-tight shadow-lg'
           )}
         >
           {content}
