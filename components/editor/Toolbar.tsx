@@ -1,5 +1,6 @@
 'use client';
 
+import { useRef } from 'react';
 import {
   Brush,
   Eraser,
@@ -7,13 +8,16 @@ import {
   Pipette,
   Undo2,
   Redo2,
-  Trash2
+  Trash2,
+  ImagePlus
 } from 'lucide-react';
-import { useEditor, type Tool } from '@/lib/store';
+import { useEditor, pixelsToFlat, type Tool } from '@/lib/store';
 import { Slider } from '@/components/ui/slider';
 import { Tooltip } from '@/components/ui/tooltip';
 import { ColorPalette } from './ColorPalette';
 import { cn } from '@/lib/utils';
+import { processImageFile } from '@/lib/imageImport';
+import { toast } from '@/components/Toaster';
 
 const TOOLS: Array<{ id: Tool; label: string; Icon: typeof Brush; key: string }> = [
   { id: 'brush', label: 'Brush (B)', Icon: Brush, key: 'B' },
@@ -23,7 +27,31 @@ const TOOLS: Array<{ id: Tool; label: string; Icon: typeof Brush; key: string }>
 ];
 
 export function Toolbar() {
-  const { size, setSize, tool, setTool, brushSize, setBrushSize, undo, redo, clear } = useEditor();
+  const { size, setSize, tool, setTool, brushSize, setBrushSize, undo, redo, clear, loadPixelData, pixels: currentPixels } =
+    useEditor();
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const onUploadClick = () => fileInputRef.current?.click();
+
+  const onFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = ''; // позволяет повторно выбрать тот же файл
+    if (!file) return;
+    const prevSnapshot = new Uint8ClampedArray(currentPixels);
+    const prevSize = size;
+    try {
+      const result = await processImageFile(file);
+      loadPixelData(result.size, result.pixels);
+      const note = result.bgRemoved ? 'background removed' : 'full image';
+      toast(`Imported · ${note}`, {
+        label: 'Undo',
+        onClick: () => loadPixelData(prevSize, pixelsToFlat(prevSnapshot))
+      });
+    } catch (err) {
+      console.error(err);
+      toast('Не удалось загрузить картинку');
+    }
+  };
 
   return (
     <div className="cs-card px-6 py-5 flex flex-wrap items-center gap-x-6 gap-y-4">
@@ -89,6 +117,23 @@ export function Toolbar() {
       <div className="w-px h-7 bg-text/10" />
 
       <div className="flex items-center gap-1">
+        <Tooltip content="Upload image · auto-cuts plain background">
+          <button
+            onClick={onUploadClick}
+            aria-label="Upload image"
+            className="h-11 w-11 inline-flex items-center justify-center rounded-pill text-text hover:bg-text/5 transition-colors"
+          >
+            <ImagePlus className="h-[18px] w-[18px]" />
+          </button>
+        </Tooltip>
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/*"
+          onChange={onFile}
+          className="hidden"
+        />
+        <div className="w-px h-7 bg-text/10 mx-1" />
         <Tooltip content="Undo · ⌘Z">
           <button onClick={undo} aria-label="Undo" className="h-11 w-11 inline-flex items-center justify-center rounded-pill text-text hover:bg-text/5 transition-colors">
             <Undo2 className="h-[18px] w-[18px]" />

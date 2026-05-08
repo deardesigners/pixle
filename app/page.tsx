@@ -74,7 +74,7 @@ function Studio() {
             <div className="font-display font-bold text-[20px] tracking-tightest leading-none text-accent-bold">
               Pixle
             </div>
-            <span className="cs-label hidden sm:inline">Pixel art into 3D</span>
+            <span className="cs-label hidden sm:inline">Pixels into 3D</span>
           </div>
           <Link href="/gallery">
             <Button variant="secondary" size="sm">
