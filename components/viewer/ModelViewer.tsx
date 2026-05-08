@@ -3,6 +3,8 @@
 import { Suspense, useEffect, useMemo, useRef, useState } from 'react';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import { OrbitControls, Environment, ContactShadows } from '@react-three/drei';
+import { EffectComposer, Bloom, ToneMapping } from '@react-three/postprocessing';
+import { ToneMappingMode } from 'postprocessing';
 import * as THREE from 'three';
 import { useEditor, pixelsToFlat } from '@/lib/store';
 import { STYLE_PRESETS, STYLE_RENDER } from '@/lib/styles';
@@ -93,12 +95,10 @@ export function ModelViewer() {
       <Canvas
         gl={{
           preserveDrawingBuffer: true,
-          antialias: true,
-          toneMapping: THREE.NoToneMapping
+          antialias: true
         }}
         camera={{ position: [3, 2.5, 3], fov: 45 }}
         shadows
-        flat
       >
         <color attach="background" args={[render.background]} />
         <ambientLight intensity={render.ambient} />
@@ -118,6 +118,15 @@ export function ModelViewer() {
           )}
         </Suspense>
         <OrbitControls makeDefault enablePan={false} minDistance={2} maxDistance={8} />
+        <EffectComposer multisampling={4} enableNormalPass={false}>
+          <Bloom
+            mipmapBlur
+            intensity={currentStyle === 'neon' ? 1.4 : 0.45}
+            luminanceThreshold={currentStyle === 'neon' ? 0.2 : 0.85}
+            luminanceSmoothing={0.4}
+          />
+          <ToneMapping mode={ToneMappingMode.ACES_FILMIC} />
+        </EffectComposer>
       </Canvas>
 
       <div
