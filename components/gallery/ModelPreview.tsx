@@ -2,6 +2,8 @@
 
 import { Canvas, useFrame } from '@react-three/fiber';
 import { Environment, ContactShadows } from '@react-three/drei';
+import { EffectComposer, Bloom, ToneMapping } from '@react-three/postprocessing';
+import { ToneMappingMode } from 'postprocessing';
 import { Suspense, useMemo, useRef } from 'react';
 import * as THREE from 'three';
 import { pixelsToCubes } from '@/lib/pixelToCubes';
@@ -25,8 +27,7 @@ export function ModelPreview({
     <Canvas
       camera={{ position: [2.6, 2, 2.6], fov: 45 }}
       dpr={[1, 1.5]}
-      gl={{ antialias: true, toneMapping: THREE.NoToneMapping }}
-      flat
+      gl={{ antialias: true }}
     >
       <color attach="background" args={[render.background]} />
       <ambientLight intensity={render.ambient} />
@@ -40,6 +41,15 @@ export function ModelPreview({
           <ContactShadows position={[0, -1.05, 0]} opacity={render.contactShadow} scale={5} blur={2} far={2} />
         )}
       </Suspense>
+      <EffectComposer multisampling={2} enableNormalPass={false}>
+        <Bloom
+          mipmapBlur
+          intensity={styleId === 'neon' ? 1.4 : 0.4}
+          luminanceThreshold={styleId === 'neon' ? 0.2 : 0.85}
+          luminanceSmoothing={0.4}
+        />
+        <ToneMapping mode={ToneMappingMode.ACES_FILMIC} />
+      </EffectComposer>
     </Canvas>
   );
 }
