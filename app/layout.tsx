@@ -4,8 +4,8 @@ import { TouchProvider } from '@/components/TouchProvider';
 import { Toaster } from '@/components/Toaster';
 
 export const metadata: Metadata = {
-  title: 'Pixel-to-3D Studio',
-  description: 'Draw pixel art and turn it into animated 3D models'
+  title: 'Pixle — pixel art into 3D',
+  description: 'Draw pixel art and watch it pop into animated 3D in six contrasting styles.'
 };
 
 export const viewport: Viewport = {

@@ -71,12 +71,10 @@ function Studio() {
       <header className="sticky top-4 z-30 mx-4 mt-4 cs-capsule rounded-pill">
         <div className="h-[64px] px-6 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="font-display font-bold text-[19px] tracking-tightest leading-none flex items-baseline gap-1.5 text-accent-bold">
-              <span>Pixel</span>
-              <span className="opacity-50">→</span>
-              <span>3D</span>
+            <div className="font-display font-bold text-[20px] tracking-tightest leading-none text-accent-bold">
+              Pixle
             </div>
-            <span className="cs-label hidden sm:inline">Studio</span>
+            <span className="cs-label hidden sm:inline">Pixel art into 3D</span>
           </div>
           <Link href="/gallery">
             <Button variant="secondary" size="sm">
