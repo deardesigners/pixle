@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from 'next';
 import './globals.css';
 import { TouchProvider } from '@/components/TouchProvider';
 import { Toaster } from '@/components/Toaster';
+import { TooltipProvider } from '@/components/ui/tooltip';
 
 const SITE_URL = 'https://pixle.art';
 
@@ -96,7 +97,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       </head>
       <body className="bg-bg text-text antialiased min-h-screen font-sans">
         <TouchProvider>
-          {children}
+          <TooltipProvider delayDuration={200}>
+            {children}
+          </TooltipProvider>
           <Toaster />
         </TouchProvider>
       </body>
