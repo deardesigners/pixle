@@ -103,7 +103,10 @@ export default async function WorkPage({ params }: Params) {
       <main className="p-6 max-w-5xl mx-auto grid gap-6 md:grid-cols-2">
         <section className="aspect-square bg-panel rounded-xl border border-border overflow-hidden relative">
           {item.pixel_data?.pixels?.length ? (
-            <ModelPreview pixelData={item.pixel_data} />
+            <ModelPreview
+              pixelData={item.pixel_data}
+              styleId={(STYLE_PRESETS[item.style_id as StyleId] ? item.style_id : 'voxel') as StyleId}
+            />
           ) : thumb ? (
             <Image src={thumb} alt={`${styleLabel} pixel art`} fill className="object-contain" unoptimized />
           ) : null}
