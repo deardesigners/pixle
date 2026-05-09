@@ -4,14 +4,6 @@ import { useEditor } from '@/lib/store';
 import { Tooltip } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
 
-const STYLE_HINTS: Record<string, string> = {
-  voxel: 'Chunky stacked cubes',
-  neon: 'Glowing tubes in the dark',
-  mercury: 'Liquid chrome blob',
-  dhl: 'Yellow parcel branded with DHL logo',
-  disco: 'Saturated cubes with wild rainbow bloom'
-};
-
 export function StyleSelector() {
   const { currentStyle, setStyle } = useEditor();
   const locked = false;
@@ -23,7 +15,7 @@ export function StyleSelector() {
       </div>
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2.5">
         {STYLE_LIST.map((s) => (
-          <Tooltip key={s.id} content={STYLE_HINTS[s.id] ?? s.description}>
+          <Tooltip key={s.id} content={s.description}>
             <button
               onClick={() => !locked && setStyle(s.id)}
               disabled={locked}

@@ -26,7 +26,6 @@ export type ImportResult = {
   size: 64;
   pixels: number[][];
   bgRemoved: boolean;
-  paletteUsed: number;
 };
 
 export async function processImageFile(file: File): Promise<ImportResult> {
@@ -123,18 +122,16 @@ function processImageData(data: Uint8ClampedArray): ImportResult {
 
   // Шаг 3. Собираем результат — пиксели как есть, без квантизации.
   const out: number[][] = new Array(total);
-  let opaqueCount = 0;
   for (let i = 0; i < total; i++) {
     if (transparent[i]) {
       out[i] = [0, 0, 0, 0];
     } else {
       const o = i * 4;
       out[i] = [data[o]!, data[o + 1]!, data[o + 2]!, 255];
-      opaqueCount++;
     }
   }
 
-  return { size: TARGET_SIZE, pixels: out, bgRemoved: removeBg, paletteUsed: opaqueCount };
+  return { size: TARGET_SIZE, pixels: out, bgRemoved: removeBg };
 }
 
 function readRgb(data: Uint8ClampedArray, x: number, y: number): [number, number, number] {

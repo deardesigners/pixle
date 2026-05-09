@@ -28,7 +28,7 @@ export const STYLE_PRESETS: Record<StyleId, StylePreset> = {
     id: 'neon',
     label: 'Neon',
     emoji: '🌃',
-    description: 'Glowing wireframe in the dark',
+    description: 'Glowing tubes in the dark',
     idleAnimation: 'pulse'
   },
   mercury: {
@@ -63,12 +63,19 @@ export type StyleRenderConfig = {
   envIntensity: number;
   envPreset: 'apartment' | 'sunset' | 'studio' | 'warehouse' | 'city' | 'night';
   contactShadow: number;
+  /** Параметры bloom-постпроцессинга для этого стиля. */
+  bloom: {
+    intensity: number;
+    threshold: number;
+    smoothing: number;
+    kernel: 'large' | 'huge';
+  };
 };
 
 export const STYLE_RENDER: Record<StyleId, StyleRenderConfig> = {
-  voxel:   { background: '#F3F0FF', ambient: 1.2, directional: 0.35, envIntensity: 0.05, envPreset: 'apartment', contactShadow: 0.5 },
-  neon:    { background: '#07070F', ambient: 1.8, directional: 0.0, envIntensity: 0,    envPreset: 'night',     contactShadow: 0 },
-  mercury: { background: '#161B26', ambient: 0.3, directional: 0.45, envIntensity: 1.6,  envPreset: 'warehouse', contactShadow: 0 },
-  dhl:     { background: '#FFCC00', ambient: 1.4, directional: 0.4, envIntensity: 0.2, envPreset: 'apartment', contactShadow: 0.5 },
-  disco:   { background: '#000000', ambient: 1.0, directional: 0.0, envIntensity: 0,    envPreset: 'night',     contactShadow: 0 }
+  voxel:   { background: '#F3F0FF', ambient: 1.2, directional: 0.35, envIntensity: 0.05, envPreset: 'apartment', contactShadow: 0.5, bloom: { intensity: 0.45, threshold: 0.85, smoothing: 0.4, kernel: 'large' } },
+  neon:    { background: '#07070F', ambient: 1.8, directional: 0.0,  envIntensity: 0,    envPreset: 'night',     contactShadow: 0,   bloom: { intensity: 1.4,  threshold: 0.2,  smoothing: 0.4, kernel: 'large' } },
+  mercury: { background: '#161B26', ambient: 0.3, directional: 0.45, envIntensity: 1.6,  envPreset: 'warehouse', contactShadow: 0,   bloom: { intensity: 0.45, threshold: 0.85, smoothing: 0.4, kernel: 'large' } },
+  dhl:     { background: '#FFCC00', ambient: 1.4, directional: 0.4,  envIntensity: 0.2,  envPreset: 'apartment', contactShadow: 0.5, bloom: { intensity: 0.45, threshold: 0.85, smoothing: 0.4, kernel: 'large' } },
+  disco:   { background: '#000000', ambient: 1.0, directional: 0.0,  envIntensity: 0,    envPreset: 'night',     contactShadow: 0,   bloom: { intensity: 5.5,  threshold: 0.0,  smoothing: 0.7, kernel: 'huge'  } }
 };

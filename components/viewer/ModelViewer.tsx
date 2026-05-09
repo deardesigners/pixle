@@ -169,14 +169,10 @@ export function ModelViewer() {
         <EffectComposer multisampling={4} enableNormalPass={false}>
           <Bloom
             mipmapBlur
-            intensity={
-              currentStyle === 'disco' ? 5.5 : currentStyle === 'neon' ? 1.4 : 0.45
-            }
-            luminanceThreshold={
-              currentStyle === 'disco' ? 0.0 : currentStyle === 'neon' ? 0.2 : 0.85
-            }
-            luminanceSmoothing={currentStyle === 'disco' ? 0.7 : 0.4}
-            kernelSize={currentStyle === 'disco' ? KernelSize.HUGE : KernelSize.LARGE}
+            intensity={render.bloom.intensity}
+            luminanceThreshold={render.bloom.threshold}
+            luminanceSmoothing={render.bloom.smoothing}
+            kernelSize={render.bloom.kernel === 'huge' ? KernelSize.HUGE : KernelSize.LARGE}
           />
           <ToneMapping mode={ToneMappingMode.ACES_FILMIC} />
         </EffectComposer>
