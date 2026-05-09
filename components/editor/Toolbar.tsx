@@ -104,7 +104,7 @@ export function Toolbar() {
 
       <div className="w-px h-7 bg-text/10" />
 
-      <div className="flex items-center gap-3 min-w-[170px]">
+      <div className="flex items-center gap-3 min-w-[170px] flex-1">
         <span className="cs-label">Brush</span>
         <Slider
           value={[brushSize]}
@@ -116,9 +116,7 @@ export function Toolbar() {
         <span className="text-[15px] font-semibold w-4 text-right tabular-nums">{brushSize}</span>
       </div>
 
-      <div className="w-px h-7 bg-text/10" />
-
-      <div className="flex items-center gap-1">
+      <div className="flex items-center gap-1 ml-auto">
         <Tooltip content="Upload image · auto-cuts plain background">
           <button
             onClick={onUploadClick}
