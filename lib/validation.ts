@@ -3,7 +3,8 @@ import { z } from 'zod';
 export const StyleIdSchema = z.enum([
   'voxel',
   'neon',
-  'mercury'
+  'mercury',
+  'dhl'
 ]);
 
 export const PixelDataSchema = z.object({
