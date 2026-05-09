@@ -31,10 +31,10 @@ export function LogoMark({ className, sizeClass = 'h-10 w-10' }: Props) {
       className={cn('inline-block shrink-0 align-middle', sizeClass, className)}
     >
       <Canvas
-        // Tighter camera + smaller fov than ModelPreview's preset so the
-        // 3D mass fills the small square instead of leaving big margins
-        // around it — keeps the mark visually centered against neighbors.
-        camera={{ position: [1.9, 1.4, 1.9], fov: 32 }}
+        // Tighter than ModelPreview's preset so the mark fills the small
+        // square, but with enough headroom that the model's diagonal
+        // (~√2 of its side) doesn't clip while spinning around Y.
+        camera={{ position: [2.2, 1.6, 2.2], fov: 36 }}
         dpr={[1, 1.5]}
         gl={{ antialias: true, alpha: true, premultipliedAlpha: false }}
         style={{ background: 'transparent' }}
