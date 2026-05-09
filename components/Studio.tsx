@@ -1,6 +1,7 @@
 'use client';
 
 import { Suspense, useEffect, useRef, useState } from 'react';
+import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Toolbar } from '@/components/editor/Toolbar';
 import { PixelCanvas } from '@/components/editor/PixelCanvas';
@@ -10,7 +11,7 @@ import { useEditor, pixelsToFlat } from '@/lib/store';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { Button } from '@/components/ui/button';
 import { Tooltip } from '@/components/ui/tooltip';
-import { Shuffle } from 'lucide-react';
+import { GalleryHorizontal, Shuffle } from 'lucide-react';
 import { toast } from '@/components/Toaster';
 import { getDhlTexture } from '@/lib/dhlBranded';
 
@@ -88,36 +89,38 @@ function StudioInner() {
         прямо на странице, в одной строке с Gallery-кнопкой… кстати, нет:
         Gallery теперь внутри editor-card'а, поэтому здесь только бренд.
       */}
-      <header className="px-6 pt-6 pb-3">
-        <div className="flex items-baseline gap-3">
-          <span className="font-display font-bold text-[24px] tracking-tightest leading-none text-accent-bold">
-            Pixle
-          </span>
-          <span className="cs-label hidden sm:inline">Pixel art into 3D</span>
-        </div>
+      <header className="px-6 pt-6 pb-3 flex items-center gap-3">
+        <span className="font-display font-bold text-[24px] tracking-tightest leading-none text-accent-bold">
+          Pixle
+        </span>
+        <span className="cs-label hidden sm:inline self-end pb-[2px]">Pixel art into 3D</span>
+        <Link href="/gallery" className="ml-auto">
+          <Tooltip content="Browse the public gallery">
+            <Button variant="default" size="sm" aria-label="Open gallery">
+              <GalleryHorizontal className="h-3.5 w-3.5" />
+              Gallery
+            </Button>
+          </Tooltip>
+        </Link>
       </header>
 
       {/*
-        Десктоп: двухколоночная сетка. Toolbar сверху (с Gallery в конце),
-        слева — Editor (label сверху, canvas, Random по центру снизу),
-        справа — Render (style chips сверху, controls справа, Publish/GIF
-        снизу). Карточки растягиваются flex-1 → одинаковая высота.
+        Toolbar сверху, под ним сетка из editor + render одинаковой высоты,
+        ниже PressurePanel (только если детектится stylus). PressurePanel
+        вынесен из колонок — иначе его высота укорачивала editor-card относительно
+        render-card.
       */}
-      <main className="flex-1 flex flex-col md:grid md:grid-cols-2 gap-5 md:gap-6 p-6 pt-2">
-        <div className="order-1 md:order-none md:col-span-2">
-          <Toolbar />
-        </div>
+      <main className="flex-1 flex flex-col gap-5 md:gap-6 p-6 pt-2">
+        <Toolbar />
 
-        <section className="contents md:flex md:flex-col md:gap-5">
-          <div className="order-2 md:order-none relative cs-card aspect-square md:aspect-auto md:min-h-[560px] md:flex-1 no-touch overflow-hidden">
+        <div className="flex-1 flex flex-col md:grid md:grid-cols-2 gap-5 md:gap-6">
+          <div className="relative cs-card aspect-square md:aspect-auto md:min-h-[560px] no-touch overflow-hidden">
             <span className="absolute top-4 left-4 z-10 cs-label">
               Editor · {size}×{size}
             </span>
-            {/* Canvas, центрируется, с отступами под верхний label и нижнюю кнопку. */}
             <div className="absolute inset-0 flex items-center justify-center px-8 pt-16 pb-20">
               <PixelCanvas />
             </div>
-            {/* Random — по центру снизу. */}
             <div className="absolute bottom-4 left-4 right-4 flex justify-center z-10">
               <Tooltip content="Generate a random shape · pick a random style">
                 <Button variant="default" onClick={randomize} aria-label="Generate random shape">
@@ -127,16 +130,13 @@ function StudioInner() {
               </Tooltip>
             </div>
           </div>
-          <div className="order-5 md:order-none">
-            <PressurePanel />
-          </div>
-        </section>
 
-        <section className="contents md:flex md:flex-col md:gap-5">
-          <div className="order-3 md:order-none aspect-square md:aspect-auto md:min-h-[560px] md:flex-1">
+          <div className="aspect-square md:aspect-auto md:min-h-[560px]">
             <ModelViewer />
           </div>
-        </section>
+        </div>
+
+        <PressurePanel />
       </main>
     </div>
   );

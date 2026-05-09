@@ -26,7 +26,19 @@ export function ColorPalette() {
   const { color, setColor } = useEditor();
   return (
     <div className="flex items-center gap-3">
-      <div className="grid grid-cols-8 gap-2.5">
+      <Tooltip content="Custom colour · pick any hex">
+        <label className="relative w-10 h-10 shrink-0 rounded-full border-[1.5px] border-text/20 overflow-hidden cursor-pointer hover:border-text transition-colors">
+          <input
+            type="color"
+            value={color}
+            onChange={(e) => setColor(e.target.value)}
+            className="absolute inset-0 opacity-0 cursor-pointer"
+            aria-label="Custom colour picker"
+          />
+          <div className="w-full h-full" style={{ background: color }} />
+        </label>
+      </Tooltip>
+      <div className="grid grid-cols-8 xl:grid-cols-[repeat(16,minmax(0,1fr))] gap-2.5">
         {PICO8.map((c) => (
           <Tooltip key={c.hex} content={`${c.name} · ${c.hex.toUpperCase()}`}>
             <button
@@ -43,18 +55,6 @@ export function ColorPalette() {
           </Tooltip>
         ))}
       </div>
-      <Tooltip content="Custom colour · pick any hex">
-        <label className="relative w-10 h-10 rounded-full border-[1.5px] border-text/20 overflow-hidden cursor-pointer ml-1 hover:border-text transition-colors">
-          <input
-            type="color"
-            value={color}
-            onChange={(e) => setColor(e.target.value)}
-            className="absolute inset-0 opacity-0 cursor-pointer"
-            aria-label="Custom colour picker"
-          />
-          <div className="w-full h-full" style={{ background: color }} />
-        </label>
-      </Tooltip>
     </div>
   );
 }

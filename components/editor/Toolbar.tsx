@@ -1,7 +1,6 @@
 'use client';
 
 import { useRef } from 'react';
-import Link from 'next/link';
 import {
   Brush,
   Eraser,
@@ -10,13 +9,11 @@ import {
   Undo2,
   Redo2,
   Trash2,
-  ImagePlus,
-  GalleryHorizontal
+  ImagePlus
 } from 'lucide-react';
 import { useEditor, pixelsToFlat, type Tool } from '@/lib/store';
 import { Slider } from '@/components/ui/slider';
 import { Tooltip } from '@/components/ui/tooltip';
-import { Button } from '@/components/ui/button';
 import { ColorPalette } from './ColorPalette';
 import { cn } from '@/lib/utils';
 import { processImageFile } from '@/lib/imageImport';
@@ -155,16 +152,6 @@ export function Toolbar() {
           </button>
         </Tooltip>
       </div>
-
-      {/* ml-auto толкает Gallery в правый край toolbar'а на любой ширине. */}
-      <Link href="/gallery" className="ml-auto">
-        <Tooltip content="Browse the public gallery">
-          <Button variant="default" size="sm" aria-label="Open gallery">
-            <GalleryHorizontal className="h-3.5 w-3.5" />
-            Gallery
-          </Button>
-        </Tooltip>
-      </Link>
     </div>
   );
 }
