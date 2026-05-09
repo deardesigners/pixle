@@ -96,7 +96,7 @@ function StudioInner() {
         <span className="cs-label hidden sm:inline self-end pb-[2px]">Pixel art into 3D</span>
         <Link href="/gallery" className="ml-auto">
           <Tooltip content="Browse the public gallery">
-            <Button variant="default" aria-label="Open gallery">
+            <Button variant="default" aria-label="Open gallery" className="cs-glow">
               <GalleryHorizontal className="h-[18px] w-[18px]" />
               Gallery
             </Button>
