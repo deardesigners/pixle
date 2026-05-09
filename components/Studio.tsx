@@ -14,6 +14,7 @@ import { Tooltip } from '@/components/ui/tooltip';
 import { GalleryHorizontal, Shuffle } from 'lucide-react';
 import { toast } from '@/components/Toaster';
 import { getDhlTexture } from '@/lib/dhlBranded';
+import { LogoMark } from '@/components/LogoMark';
 
 type AppConfig = { hasBlob: boolean; hasPostgres: boolean };
 
@@ -95,11 +96,9 @@ function StudioInner() {
         Header sits directly on the page background. Brand wordmark and
         tagline share a baseline; Gallery CTA is anchored to the right.
       */}
-      <header className="px-6 pt-6 pb-3 flex items-center gap-3">
-        <div className="flex items-baseline gap-3">
-          <span className="font-display font-bold text-[24px] tracking-tightest leading-none text-accent-bold">
-            Pixle
-          </span>
+      <header className="px-6 pt-4 pb-3 flex items-center gap-3">
+        <div className="flex items-center gap-3">
+          <LogoMark sizeClass="h-12 w-12" />
           <span className="cs-label hidden sm:inline">Pixel art into 3D</span>
         </div>
         <Link href="/gallery" className="ml-auto">

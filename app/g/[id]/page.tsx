@@ -8,6 +8,7 @@ import type { StyleId } from '@/lib/validation';
 import { Button } from '@/components/ui/button';
 import { GalleryHorizontal, Recycle } from 'lucide-react';
 import { ModelPreview } from '@/components/gallery/ModelPreview';
+import { LogoMark } from '@/components/LogoMark';
 
 export const dynamic = 'force-dynamic';
 
@@ -77,20 +78,14 @@ export default async function WorkPage({ params }: Params) {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
 
-      {/* Studio-parity header: brand wordmark + work label, primary CTA back to gallery (with glow). */}
-      <header className="px-6 pt-6 pb-3 flex items-center gap-3">
-        <div className="flex items-baseline gap-3">
-          <Link
-            href="/"
-            className="font-display font-bold text-[24px] tracking-tightest leading-none text-accent-bold"
-            aria-label="Pixle home"
-          >
-            Pixle
-          </Link>
+      {/* Studio-parity header: rotating 3D logo + work label, primary CTA back to gallery (with glow). */}
+      <header className="px-6 pt-4 pb-3 flex items-center gap-3">
+        <Link href="/" aria-label="Pixle home" className="flex items-center gap-3">
+          <LogoMark sizeClass="h-12 w-12" />
           <span className="cs-label hidden sm:inline">
             {styleLabel} · {size}×{size}
           </span>
-        </div>
+        </Link>
         <Link href="/gallery" className="ml-auto">
           <Button variant="default" aria-label="Back to gallery" className="cs-glow">
             <GalleryHorizontal className="h-[18px] w-[18px]" />

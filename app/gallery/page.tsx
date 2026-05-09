@@ -6,6 +6,7 @@ import { ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipProvider } from '@/components/ui/tooltip';
 import { GalleryGrid } from '@/components/gallery/GalleryGrid';
+import { LogoMark } from '@/components/LogoMark';
 import { STYLE_LIST } from '@/lib/styles';
 import type { StyleId } from '@/lib/validation';
 import { cn } from '@/lib/utils';
@@ -34,18 +35,12 @@ export default function GalleryPage() {
           creation.
         </p>
 
-        {/* Studio-parity top header: brand wordmark + tagline (left), primary CTA back to studio (right). */}
-        <header className="px-6 pt-6 pb-3 flex items-center gap-3">
-          <div className="flex items-baseline gap-3">
-            <Link
-              href="/"
-              className="font-display font-bold text-[24px] tracking-tightest leading-none text-accent-bold"
-              aria-label="Pixle home"
-            >
-              Pixle
-            </Link>
+        {/* Studio-parity top header: rotating 3D logo + tagline (left), primary CTA back to studio (right). */}
+        <header className="px-6 pt-4 pb-3 flex items-center gap-3">
+          <Link href="/" aria-label="Pixle home" className="flex items-center gap-3">
+            <LogoMark sizeClass="h-12 w-12" />
             <span className="cs-label hidden sm:inline">Gallery · public feed</span>
-          </div>
+          </Link>
           <Link href="/" className="ml-auto">
             <Tooltip content="Back to the studio">
               <Button variant="default" aria-label="Back to studio" className="cs-glow">
