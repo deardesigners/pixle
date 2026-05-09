@@ -7,7 +7,7 @@
 
 import type { StyleId } from './validation';
 
-const STYLE_IDS: StyleId[] = ['voxel', 'neon', 'mercury', 'dhl', 'disco'];
+const STYLE_IDS: StyleId[] = ['voxel', 'neon', 'mercury', 'dhl'];
 
 function hslToRgb(h: number, s: number, l: number): [number, number, number] {
   const a = s * Math.min(l, 1 - l);

@@ -41,8 +41,7 @@ export function ModelViewer() {
   );
 
   const render = STYLE_RENDER[currentStyle];
-  const isDark =
-    currentStyle === 'neon' || currentStyle === 'mercury' || currentStyle === 'disco';
+  const isDark = currentStyle === 'neon' || currentStyle === 'mercury';
 
   const onExportGif = async () => {
     if (isEmpty || exportingGif) return;

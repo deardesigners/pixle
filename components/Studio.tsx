@@ -122,14 +122,19 @@ function StudioInner() {
           <div className="order-2 md:order-none relative cs-card flex items-center justify-center aspect-square md:aspect-auto md:min-h-[440px] md:flex-1 no-touch overflow-hidden p-8">
             <span className="absolute top-6 left-8 cs-label z-10">Editor · {size}×{size}</span>
             <PixelCanvas />
-          </div>
-          <div className="order-[2.5] md:order-none flex justify-center">
-            <Tooltip content="Generate a random shape · pick a random style">
-              <Button variant="secondary" onClick={randomize} aria-label="Generate random shape">
-                <Shuffle className="h-[18px] w-[18px]" />
-                Random
-              </Button>
-            </Tooltip>
+            {/*
+              Random — оверлей в нижнем-левом углу editor-card, симметрично
+              Publish/GIF в render-card. Высота / отступы наследуются от
+              cs-btn--accent (44px, 22px паддинг) — кнопки выровнены.
+            */}
+            <div className="absolute bottom-4 left-4 right-4 flex flex-wrap gap-2 z-10">
+              <Tooltip content="Generate a random shape · pick a random style">
+                <Button variant="default" onClick={randomize} aria-label="Generate random shape">
+                  <Shuffle className="h-[18px] w-[18px]" />
+                  Random
+                </Button>
+              </Tooltip>
+            </div>
           </div>
           <div className="order-5 md:order-none">
             <PressurePanel />
