@@ -2,8 +2,6 @@ import { z } from 'zod';
 
 export const StyleIdSchema = z.enum([
   'voxel',
-  'plush',
-  'crystal',
   'neon',
   'mercury'
 ]);

@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo } from 'react';
+import { useEffect, useMemo } from 'react';
 import { Instances, Instance } from '@react-three/drei';
 import * as THREE from 'three';
 import type { StyleId } from '@/lib/validation';
@@ -17,42 +17,25 @@ export function StyledInstances({
   styleId: StyleId;
   wireframe?: boolean;
 }) {
-  // Smooth-стили получают монолитный merged mesh с дедупликацией вершин и
-  // сглаженными нормалями — выглядят как цельная форма, не россыпь кубов.
-  const isSmoothStyle =
-    styleId === 'crystal' || styleId === 'mercury' || styleId === 'plush';
+  // Mercury получает монолитный merged mesh с дедупликацией вершин и
+  // сглаженными нормалями — выглядит как цельная форма, не россыпь шариков.
+  const isSmoothStyle = styleId === 'mercury';
 
   const monoGroups = useMemo<MonoGroup[]>(() => {
     if (!isSmoothStyle) return [];
-    // Чуть-чуть перекрытия (1.0) — соседние кубы смыкаются по граням и
-    // mergeVertices их склеит. Иначе остаются микрозазоры.
     return buildMonoGroups(cubes, 1.0);
   }, [cubes, isSmoothStyle]);
 
-  if (styleId === 'crystal') {
-    return (
-      <group>
-        {monoGroups.map((g, i) => (
-          <mesh key={i} geometry={g.geometry} castShadow receiveShadow>
-            <meshPhysicalMaterial
-              color={g.color}
-              wireframe={wireframe}
-              transmission={1}
-              ior={1.55}
-              thickness={1.5}
-              roughness={0.05}
-              metalness={0}
-              clearcoat={1}
-              clearcoatRoughness={0.02}
-              attenuationDistance={3}
-              attenuationColor={g.color}
-              transparent
-            />
-          </mesh>
-        ))}
-      </group>
-    );
-  }
+  // Цилиндр для neon: ось вдоль Z, длина точно равна шагу слоя (1.0),
+  // чтобы соседние воксели в одной X,Y-колонке стыковались торцами без
+  // зазоров и формировали непрерывную трубу. Радиус 0.5 = диаметр клетки,
+  // края цилиндров касаются по X/Y.
+  const neonCylinder = useMemo(() => {
+    const g = new THREE.CylinderGeometry(0.5, 0.5, 1.0, 18, 1, false);
+    g.rotateX(Math.PI / 2);
+    return g;
+  }, []);
+  useEffect(() => () => neonCylinder.dispose(), [neonCylinder]);
 
   if (styleId === 'mercury') {
     return (
@@ -74,29 +57,11 @@ export function StyledInstances({
     );
   }
 
-  if (styleId === 'plush') {
-    return (
-      <group>
-        {monoGroups.map((g, i) => (
-          <mesh key={i} geometry={g.geometry} castShadow receiveShadow>
-            <meshStandardMaterial
-              color={g.color}
-              wireframe={wireframe}
-              roughness={0.95}
-              metalness={0}
-            />
-          </mesh>
-        ))}
-      </group>
-    );
-  }
-
   if (styleId === 'neon') {
     // toneMapped=false — цвета идут в композитор без сжатия, Bloom их подхватит.
-    // Plus небольшой scale чтобы куб ощущался как источник, а не каркас.
     return (
       <Instances limit={65536} range={cubes.length} castShadow={false} receiveShadow={false}>
-        <boxGeometry args={[0.95, 0.95, 0.95]} />
+        <primitive object={neonCylinder} attach="geometry" />
         <meshBasicMaterial toneMapped={false} wireframe={wireframe} />
         {cubes.map((c, i) => (
           <Instance key={i} position={c.pos} color={c.color} />
