@@ -1,6 +1,9 @@
 'use client';
 
 import { useEffect, useRef, useState, useCallback } from 'react';
+import Link from 'next/link';
+import { Sparkles } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import { GalleryCard, type GalleryItem } from './GalleryCard';
 import { getClientId } from '@/lib/clientId';
 import type { StyleId } from '@/lib/validation';
@@ -68,6 +71,29 @@ export function GalleryGrid({ style, mine, sort }: Props) {
     return () => obs.disconnect();
   }, [fetchMore]);
 
+  const isEmpty = done && items.length === 0;
+
+  if (isEmpty) {
+    return (
+      <div className="flex flex-col items-center justify-center py-20 text-center">
+        <div className="mb-4 text-muted">
+          <Sparkles size={40} strokeWidth={1.5} />
+        </div>
+        <h2 className="font-display font-semibold text-[18px] tracking-tightest leading-tight">
+          Nothing here yet
+        </h2>
+        <p className="mt-1 max-w-xs text-[13px] text-muted leading-relaxed">
+          Make a pixel-art shape, pick a style, and hit Publish — your work will land here.
+        </p>
+        <Link href="/" className="mt-6 inline-block">
+          <Button variant="default" aria-label="Open studio" className="cs-glow">
+            Open studio
+          </Button>
+        </Link>
+      </div>
+    );
+  }
+
   return (
     <>
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
@@ -76,7 +102,7 @@ export function GalleryGrid({ style, mine, sort }: Props) {
         ))}
       </div>
       <div ref={sentinelRef} className="h-12 flex items-center justify-center text-xs text-muted">
-        {loading ? 'Loading…' : done ? (items.length === 0 ? 'Empty' : 'End of feed') : ''}
+        {loading ? 'Loading…' : done ? 'End of feed' : ''}
       </div>
     </>
   );

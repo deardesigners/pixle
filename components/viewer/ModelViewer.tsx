@@ -48,14 +48,14 @@ export function ModelViewer() {
     if (isEmpty || exportingGif) return;
     const canvas = canvasElRef.current;
     if (!canvas) {
-      toast('Сцена ещё не готова');
+      toast('Scene is still warming up. Try again in a moment.');
       return;
     }
-    // Размер из текущего размера превью (CSS-пиксели). Камера и ракурс уже
-    // живут в OrbitControls, sample frames используют ту же камеру — то
-    // есть GIF получается ровно тем же кадром, что пользователь видит.
-    // Cap на 640 по длинной стороне, иначе на больших экранах файл уезжает
-    // в десятки мегабайт и кодирование становится мучительным.
+    // Size from current preview (CSS pixels). The camera and viewing angle
+    // already live in OrbitControls, sample frames use the same camera — so
+    // the GIF captures exactly what the user sees. Cap at 640 on the long
+    // edge; otherwise files balloon to tens of megabytes on big screens
+    // and encoding becomes painfully slow.
     const cw = Math.max(1, Math.round(canvas.clientWidth));
     const ch = Math.max(1, Math.round(canvas.clientHeight));
     const MAX_SIDE = 640;
@@ -79,7 +79,10 @@ export function ModelViewer() {
       downloadBlob(blob, `pixle-${currentStyle}-${stamp}.gif`);
     } catch (err) {
       console.error(err);
-      toast('Не удалось собрать GIF');
+      toast("Couldn't export the GIF. Try again.", {
+        label: 'Retry',
+        onClick: onExportGif
+      });
     } finally {
       setExportingGif(false);
       setGifProgress(0);
@@ -92,7 +95,7 @@ export function ModelViewer() {
     try {
       const thumbnailBase64 = captureRef.current?.();
       if (!thumbnailBase64) {
-        toast('Не удалось снять превью сцены');
+        toast('Scene is still warming up. Try again in a moment.');
         setPublishing(false);
         return;
       }
@@ -128,15 +131,30 @@ export function ModelViewer() {
         })
       });
       if (res.status === 503) {
-        toast('Хранилище не подключено. Нужны Postgres + Blob.');
+        toast('Publishing is temporarily unavailable. Try again later.');
         return;
       }
       if (!res.ok) throw new Error('Publish failed');
+      const data = (await res.json().catch(() => null)) as { id?: string } | null;
+      const shareUrl = data?.id ? `${window.location.origin}/g/${data.id}` : null;
+      if (shareUrl) {
+        try {
+          await navigator.clipboard.writeText(shareUrl);
+        } catch {
+          /* clipboard may be blocked; fall through to the toast action */
+        }
+      }
       setPublished(true);
-      toast('Опубликовано', { label: 'Открыть', onClick: () => window.open('/gallery', '_self') });
+      toast(shareUrl ? 'Published · link copied' : 'Published', {
+        label: 'Open',
+        onClick: () => window.open(shareUrl ?? '/gallery', '_blank', 'noopener,noreferrer')
+      });
     } catch (err) {
       console.error(err);
-      toast('Не удалось опубликовать');
+      toast("Couldn't publish. Check your connection and try again.", {
+        label: 'Retry',
+        onClick: onPublish
+      });
     } finally {
       setPublishing(false);
     }

@@ -26,7 +26,9 @@ export function Toaster() {
   const { toasts, remove } = useToastStore();
 
   useEffect(() => {
-    const timers = toasts.map((t) => setTimeout(() => remove(t.id), 4500));
+    // Toasts with an action button get longer display time so the user can
+    // reach the Undo / Open / Retry button before it disappears.
+    const timers = toasts.map((t) => setTimeout(() => remove(t.id), t.action ? 7500 : 4500));
     return () => timers.forEach(clearTimeout);
   }, [toasts, remove]);
 
