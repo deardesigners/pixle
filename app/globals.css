@@ -128,6 +128,21 @@ h1, h2, h3, h4 {
 .cs-btn--icon { width: 36px; height: 36px; padding: 0; }
 .cs-btn--icon-sm { width: 32px; height: 32px; padding: 0; }
 
+/* Persistent yellow halo for accent CTAs that should attract attention. */
+.cs-glow {
+  animation: cs-glow-pulse 2.6s ease-in-out infinite;
+}
+.cs-glow:hover:not(:disabled) {
+  box-shadow: 0 0 38px rgba(255, 240, 124, 0.95);
+}
+@keyframes cs-glow-pulse {
+  0%, 100% { box-shadow: 0 0 18px rgba(255, 240, 124, 0.45); }
+  50%      { box-shadow: 0 0 32px rgba(255, 240, 124, 0.85); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .cs-glow { animation: none; box-shadow: 0 0 26px rgba(255, 240, 124, 0.7); }
+}
+
 /* Карточка-плёнка */
 .cs-card {
   background: var(--white);
