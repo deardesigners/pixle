@@ -11,7 +11,8 @@ import { StyleSelector } from '@/components/viewer/StyleSelector';
 import { useEditor, pixelsToFlat } from '@/lib/store';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { Button } from '@/components/ui/button';
-import { GalleryHorizontal } from 'lucide-react';
+import { Tooltip } from '@/components/ui/tooltip';
+import { GalleryHorizontal, Shuffle } from 'lucide-react';
 import { toast } from '@/components/Toaster';
 
 type AppConfig = { hasBlob: boolean; hasPostgres: boolean };
@@ -33,7 +34,7 @@ function StudioInner() {
   const remixHandled = useRef(false);
   const [, setConfig] = useState<AppConfig | null>(null);
 
-  const { pixels, size, loadPixelData } = useEditor();
+  const { pixels, size, loadPixelData, randomize } = useEditor();
 
   useEffect(() => {
     fetch('/api/config')
@@ -41,6 +42,18 @@ function StudioInner() {
       .then((c: AppConfig) => setConfig(c))
       .catch(() => setConfig({ hasBlob: false, hasPostgres: false }));
   }, []);
+
+  // Auto-generate стартовую фигуру + случайный стиль на первой загрузке.
+  // Не запускаем когда пришёл remix-параметр — там грузится работа из галереи.
+  const seededRef = useRef(false);
+  useEffect(() => {
+    if (remixId || seededRef.current) return;
+    const empty = pixels.every((v, i) => (i % 4 === 3 ? v === 0 : true));
+    if (!empty) return;
+    seededRef.current = true;
+    randomize();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [remixId]);
 
   useEffect(() => {
     if (!remixId || remixHandled.current) return;
@@ -104,6 +117,14 @@ function StudioInner() {
           <div className="order-2 md:order-none relative cs-card flex items-center justify-center aspect-square md:aspect-auto md:min-h-[440px] md:flex-1 no-touch overflow-hidden p-8">
             <span className="absolute top-6 left-8 cs-label z-10">Editor · {size}×{size}</span>
             <PixelCanvas />
+          </div>
+          <div className="order-[2.5] md:order-none flex justify-center">
+            <Tooltip content="Generate a random shape · pick a random style">
+              <Button variant="secondary" onClick={randomize} aria-label="Generate random shape">
+                <Shuffle className="h-[18px] w-[18px]" />
+                Random
+              </Button>
+            </Tooltip>
           </div>
           <div className="order-5 md:order-none">
             <PressurePanel />

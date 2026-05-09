@@ -2,6 +2,7 @@
 
 import { create } from 'zustand';
 import type { StyleId } from './validation';
+import { generateRandomShape, pickRandomStyle } from './randomShape';
 
 export type Tool = 'brush' | 'eraser' | 'fill' | 'eyedropper';
 
@@ -45,6 +46,7 @@ type Actions = {
   clear: () => void;
   loadPixelData: (size: number, flat: number[][]) => void;
   replacePixels: (next: Uint8ClampedArray) => void;
+  randomize: () => void;
 };
 
 function makeBuffer(size: number): Uint8ClampedArray {
@@ -166,7 +168,17 @@ export const useEditor = create<State & Actions>((set, get) => ({
     set({ size: validSize, pixels: buf, version: get().version + 1, history: [], future: [] });
   },
 
-  replacePixels: (next) => set({ pixels: next, version: get().version + 1 })
+  replacePixels: (next) => set({ pixels: next, version: get().version + 1 }),
+
+  randomize: () => {
+    const { size, version } = get();
+    get().pushHistory();
+    set({
+      pixels: generateRandomShape(size),
+      currentStyle: pickRandomStyle(),
+      version: version + 1
+    });
+  }
 }));
 
 export function pixelsToFlat(buf: Uint8ClampedArray): number[][] {
