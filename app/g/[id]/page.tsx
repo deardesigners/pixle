@@ -6,7 +6,7 @@ import { getGeneration } from '@/lib/db/queries';
 import { STYLE_PRESETS } from '@/lib/styles';
 import type { StyleId } from '@/lib/validation';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Recycle } from 'lucide-react';
+import { GalleryHorizontal, Recycle } from 'lucide-react';
 import { ModelPreview } from '@/components/gallery/ModelPreview';
 
 export const dynamic = 'force-dynamic';
@@ -71,37 +71,38 @@ export default async function WorkPage({ params }: Params) {
   };
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen flex flex-col">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
 
-      <header className="sticky top-0 z-30 bg-bg/85 backdrop-blur-md border-b border-border">
-        <div className="px-6 h-14 flex items-center gap-4">
-          <Link href="/gallery">
-            <Button variant="ghost" size="sm">
-              <ArrowLeft className="h-3.5 w-3.5" />
-              Gallery
-            </Button>
+      {/* Studio-parity header: brand wordmark + work label, primary CTA back to gallery (with glow). */}
+      <header className="px-6 pt-6 pb-3 flex items-center gap-3">
+        <div className="flex items-baseline gap-3">
+          <Link
+            href="/"
+            className="font-display font-bold text-[24px] tracking-tightest leading-none text-accent-bold"
+            aria-label="Pixle home"
+          >
+            Pixle
           </Link>
-          <div className="flex items-baseline gap-2 flex-1">
-            <h1 className="font-display font-semibold text-[15px] tracking-tightest leading-none">
-              {styleLabel} pixel art in 3D
-            </h1>
-            <span className="label">Work · {size}×{size}</span>
-          </div>
-          <Link href={`/?remix=${item.id}`}>
-            <Button variant="default" size="sm">
-              <Recycle className="h-3.5 w-3.5" />
-              Remix
-            </Button>
-          </Link>
+          <span className="cs-label hidden sm:inline">
+            {styleLabel} · {size}×{size}
+          </span>
         </div>
+        <Link href="/gallery" className="ml-auto">
+          <Button variant="default" aria-label="Back to gallery" className="cs-glow">
+            <GalleryHorizontal className="h-[18px] w-[18px]" />
+            Gallery
+          </Button>
+        </Link>
       </header>
 
-      <main className="p-6 max-w-5xl mx-auto grid gap-6 md:grid-cols-2">
-        <section className="aspect-square bg-panel rounded-xl border border-border overflow-hidden relative">
+      <h1 className="sr-only">{styleLabel} pixel art in 3D</h1>
+
+      <main className="flex-1 p-6 max-w-5xl mx-auto w-full grid gap-6 md:grid-cols-2">
+        <section className="relative cs-card aspect-square overflow-hidden">
           {item.pixel_data?.pixels?.length ? (
             <ModelPreview
               pixelData={item.pixel_data}
@@ -113,7 +114,9 @@ export default async function WorkPage({ params }: Params) {
         </section>
 
         <section className="flex flex-col gap-4">
-          <h2 className="font-display text-2xl tracking-tightest">{styleLabel} pixel art</h2>
+          <h2 className="font-display font-bold text-[24px] tracking-tightest leading-none text-accent-bold">
+            {styleLabel} pixel art
+          </h2>
           <p className="text-muted leading-relaxed">
             A {size}×{size} pixel art sprite rendered as a 3D model in the {styleLabel} style
             {styleDescription ? ` — ${styleDescription.toLowerCase()}` : ''}. Created with Pixle, a
@@ -122,20 +125,20 @@ export default async function WorkPage({ params }: Params) {
 
           <h3 className="font-display text-lg tracking-tightest mt-2">About this style</h3>
           <p className="text-muted leading-relaxed">
-            {styleLabel} is one of three render styles available in Pixle. Draw any pixel art
+            {styleLabel} is one of the render styles available in Pixle. Draw any pixel art
             and instantly see it extruded as a 3D model — no modeling software, no setup. Pick
-            from Voxel, Neon, and Mercury to give your sprite a different material and feel.
+            from Voxel, Neon, Mercury, and DHL to give your sprite a different material and feel.
           </p>
 
-          <div className="flex items-center gap-2 mt-2">
+          <div className="flex flex-wrap items-center gap-3 mt-2">
             <Link href={`/?remix=${item.id}`}>
-              <Button variant="default" size="sm">
-                <Recycle className="h-4 w-4" />
-                Remix this in the editor
+              <Button variant="default" aria-label="Remix this work in the editor">
+                <Recycle className="h-[18px] w-[18px]" />
+                Remix in editor
               </Button>
             </Link>
             <Link href="/gallery">
-              <Button variant="secondary" size="sm">
+              <Button variant="ghost" aria-label="Browse gallery">
                 Browse gallery
               </Button>
             </Link>

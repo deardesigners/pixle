@@ -35,8 +35,8 @@ export function GalleryCard({
   const [liked, setLiked] = useState(item.liked_by_me);
   const [count, setCount] = useState(item.like_count);
   const [, startTransition] = useTransition();
-  // Старые записи в БД могут хранить style_id, которого нет в текущем enum —
-  // фолбэк на voxel, чтобы карточка не падала на runtime.
+  // Older DB rows may carry a style_id that's no longer in the current enum —
+  // fall back to voxel so the card still renders instead of crashing at runtime.
   const preset = STYLE_PRESETS[item.style_id] ?? STYLE_PRESETS.voxel;
   const safeStyleId = STYLE_PRESETS[item.style_id] ? item.style_id : 'voxel';
 
@@ -74,14 +74,15 @@ export function GalleryCard({
   const workHref = `/g/${item.id}`;
 
   return (
-    <div className="bg-panel border border-border rounded-xl overflow-hidden group">
-      <Link
-        href={workHref}
-        className="relative aspect-square bg-bg checker-bg block"
-        onPointerEnter={() => setShowPreview(true)}
-        onPointerLeave={() => setShowPreview(false)}
-        aria-label={`${preset.label} pixel art in 3D`}
-      >
+    <div className="cs-card overflow-hidden group">
+      <Tooltip content="Open · hover for 3D preview">
+        <Link
+          href={workHref}
+          className="relative aspect-square bg-bg checker-bg block"
+          onPointerEnter={() => setShowPreview(true)}
+          onPointerLeave={() => setShowPreview(false)}
+          aria-label={`${preset.label} pixel art in 3D`}
+        >
         {thumb && (
           <Image
             src={thumb}
@@ -109,7 +110,8 @@ export function GalleryCard({
         >
           <Maximize2 className="h-3.5 w-3.5" />
         </Button>
-      </Link>
+        </Link>
+      </Tooltip>
       <div className="flex items-center justify-between p-3">
         <Tooltip content={liked ? 'Remove like' : 'Like this work'}>
           <button
