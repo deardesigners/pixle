@@ -66,7 +66,7 @@ export function ModelViewer() {
         width,
         height,
         fps: 24,
-        durationSec: 2.5,
+        durationSec: 4.0,
         background: render.background,
         onProgress: setGifProgress
       });
@@ -254,7 +254,7 @@ export function ModelViewer() {
               ? 'Draw something first'
               : exportingGif
                 ? `Recording GIF · ${Math.round(gifProgress * 100)}%`
-                : 'Export 2.5s loop as animated GIF'
+                : 'Export 4s loop as animated GIF'
           }
         >
           <Button
