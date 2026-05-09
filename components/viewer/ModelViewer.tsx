@@ -255,7 +255,15 @@ export function ModelViewer() {
                 : 'Export 2.5s loop as animated GIF'
           }
         >
-          <Button variant="secondary" onClick={onExportGif} disabled={isEmpty || exportingGif}>
+          <Button
+            variant="secondary"
+            onClick={onExportGif}
+            disabled={isEmpty || exportingGif}
+            className={cn(
+              isDark &&
+                '!text-white !border-white/40 hover:!border-white hover:!text-white hover:!bg-white/15'
+            )}
+          >
             {exportingGif ? (
               <>
                 <span className="flex gap-1"><span className="ai-dot" /><span className="ai-dot" /><span className="ai-dot" /></span>
