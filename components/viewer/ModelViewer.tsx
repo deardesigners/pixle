@@ -18,6 +18,7 @@ import { pixelsToCubes } from '@/lib/pixelToCubes';
 import { getClientId } from '@/lib/clientId';
 import { exportGif, downloadBlob } from '@/lib/gifExport';
 import { StyledInstances } from './StyledInstances';
+import { StyleSelector } from './StyleSelector';
 
 export function ModelViewer() {
   const { pixels, size, version, currentStyle } = useEditor();
@@ -182,13 +183,21 @@ export function ModelViewer() {
         </EffectComposer>
       </Canvas>
 
-      <div
-        className={cn(
-          'absolute top-5 left-5 text-[14px] font-medium tracking-tight',
-          isDark ? 'text-white/55' : 'cs-label'
-        )}
-      >
-        Render
+      {/*
+        Top row: Render label (left) + style chips (центр). Reset/wireframe
+        в правом верхнем углу — отдельным абсолютом ниже. Чипсы рендерятся
+        с backdrop-blur'ом → читаются и на тёмных стилях (neon/mercury).
+      */}
+      <div className="absolute top-4 left-4 right-16 z-10 flex items-center gap-3 flex-wrap">
+        <span
+          className={cn(
+            'text-[14px] font-medium tracking-tight shrink-0',
+            isDark ? 'text-white/55' : 'cs-label'
+          )}
+        >
+          Render
+        </span>
+        <StyleSelector />
       </div>
 
       <div className="absolute top-4 right-4 flex flex-col gap-1.5">

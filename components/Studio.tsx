@@ -1,18 +1,16 @@
 'use client';
 
 import { Suspense, useEffect, useRef, useState } from 'react';
-import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Toolbar } from '@/components/editor/Toolbar';
 import { PixelCanvas } from '@/components/editor/PixelCanvas';
 import { PressurePanel } from '@/components/editor/PressurePanel';
 import { ModelViewer } from '@/components/viewer/ModelViewer';
-import { StyleSelector } from '@/components/viewer/StyleSelector';
 import { useEditor, pixelsToFlat } from '@/lib/store';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { Button } from '@/components/ui/button';
 import { Tooltip } from '@/components/ui/tooltip';
-import { GalleryHorizontal, Shuffle } from 'lucide-react';
+import { Shuffle } from 'lucide-react';
 import { toast } from '@/components/Toaster';
 import { getDhlTexture } from '@/lib/dhlBranded';
 
@@ -100,12 +98,10 @@ function StudioInner() {
       </header>
 
       {/*
-        Десктоп: двухколоночная сетка. Toolbar сверху на всю ширину,
-        слева — Editor (внутри: style chips + Gallery, canvas, Random),
-        справа — Render. Карточки растягиваются flex-1 → одинаковая высота.
-
-        Мобильный (display:contents на секциях): Toolbar → Editor → Render →
-        PressurePanel.
+        Десктоп: двухколоночная сетка. Toolbar сверху (с Gallery в конце),
+        слева — Editor (label сверху, canvas, Random по центру снизу),
+        справа — Render (style chips сверху, controls справа, Publish/GIF
+        снизу). Карточки растягиваются flex-1 → одинаковая высота.
       */}
       <main className="flex-1 flex flex-col md:grid md:grid-cols-2 gap-5 md:gap-6 p-6 pt-2">
         <div className="order-1 md:order-none md:col-span-2">
@@ -114,26 +110,15 @@ function StudioInner() {
 
         <section className="contents md:flex md:flex-col md:gap-5">
           <div className="order-2 md:order-none relative cs-card aspect-square md:aspect-auto md:min-h-[560px] md:flex-1 no-touch overflow-hidden">
-            {/*
-              Top row: Editor label + style chips + Gallery. Floating над
-              canvas'ом (z-10), не блокирует drawing-область.
-            */}
-            <div className="absolute top-4 left-4 right-4 z-10 flex items-center justify-between gap-3 flex-wrap">
-              <span className="cs-label shrink-0">Editor · {size}×{size}</span>
-              <StyleSelector />
-              <Link href="/gallery" className="shrink-0">
-                <Button variant="default" size="sm" aria-label="Open gallery">
-                  <GalleryHorizontal className="h-3.5 w-3.5" />
-                  Gallery
-                </Button>
-              </Link>
-            </div>
-            {/* Canvas, центрируется, отступы под верхнюю и нижнюю панели. */}
-            <div className="absolute inset-0 flex items-center justify-center px-8 pt-20 pb-20">
+            <span className="absolute top-4 left-4 z-10 cs-label">
+              Editor · {size}×{size}
+            </span>
+            {/* Canvas, центрируется, с отступами под верхний label и нижнюю кнопку. */}
+            <div className="absolute inset-0 flex items-center justify-center px-8 pt-16 pb-20">
               <PixelCanvas />
             </div>
-            {/* Random — bottom-left, симметрично Publish/GIF в render-card. */}
-            <div className="absolute bottom-4 left-4 right-4 flex flex-wrap gap-2 z-10">
+            {/* Random — по центру снизу. */}
+            <div className="absolute bottom-4 left-4 right-4 flex justify-center z-10">
               <Tooltip content="Generate a random shape · pick a random style">
                 <Button variant="default" onClick={randomize} aria-label="Generate random shape">
                   <Shuffle className="h-[18px] w-[18px]" />
