@@ -44,9 +44,13 @@ export function ModelPreview({
       <EffectComposer multisampling={2} enableNormalPass={false}>
         <Bloom
           mipmapBlur
-          intensity={styleId === 'neon' ? 1.4 : 0.4}
-          luminanceThreshold={styleId === 'neon' ? 0.2 : 0.85}
-          luminanceSmoothing={0.4}
+          intensity={
+            styleId === 'disco' ? 3.2 : styleId === 'neon' ? 1.4 : 0.4
+          }
+          luminanceThreshold={
+            styleId === 'disco' ? 0.0 : styleId === 'neon' ? 0.2 : 0.85
+          }
+          luminanceSmoothing={styleId === 'disco' ? 0.6 : 0.4}
         />
         <ToneMapping mode={ToneMappingMode.ACES_FILMIC} />
       </EffectComposer>

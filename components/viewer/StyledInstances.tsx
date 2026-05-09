@@ -92,6 +92,36 @@ export function StyledInstances({
     );
   }
 
+  // Disco: цвет каждого кубика поднимается в HSL до максимума насыщенности
+  // и яркости. На чёрном фоне + сильном bloom это даёт «дикое радужное
+  // свечение» — каждый куб ощущается как самостоятельный источник света.
+  const discoCubes = useMemo(() => {
+    if (styleId !== 'disco') return cubes;
+    return cubes.map((c) => {
+      const hsl = { h: 0, s: 0, l: 0 };
+      c.color.getHSL(hsl);
+      // Тёмные/блёклые пиксели вынесём в зону supersaturated — иначе чёрные
+      // волосы и глаза превращаются в чёрные дырки без свечения.
+      const lightness = Math.max(0.5, Math.min(0.7, hsl.l + 0.15));
+      const out = new THREE.Color();
+      out.setHSL(hsl.h, 1.0, lightness);
+      return { pos: c.pos, color: out };
+    });
+  }, [styleId, cubes]);
+
+  if (styleId === 'disco') {
+    // toneMapped=false — цвета не зажимаются, проходят в bloom как HDR.
+    return (
+      <Instances limit={65536} range={discoCubes.length} castShadow={false} receiveShadow={false}>
+        <boxGeometry args={[0.95, 0.95, 0.95]} />
+        <meshBasicMaterial toneMapped={false} wireframe={wireframe} />
+        {discoCubes.map((c, i) => (
+          <Instance key={i} position={c.pos} color={c.color} />
+        ))}
+      </Instances>
+    );
+  }
+
   if (styleId === 'neon') {
     // toneMapped=false — цвета идут в композитор без сжатия, Bloom их подхватит.
     return (
