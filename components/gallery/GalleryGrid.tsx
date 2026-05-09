@@ -2,8 +2,8 @@
 
 import { useEffect, useRef, useState, useCallback } from 'react';
 import Link from 'next/link';
-import { Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { LogoMark } from '@/components/LogoMark';
 import { GalleryCard, type GalleryItem } from './GalleryCard';
 import { getClientId } from '@/lib/clientId';
 import type { StyleId } from '@/lib/validation';
@@ -75,14 +75,12 @@ export function GalleryGrid({ style, mine, sort }: Props) {
 
   if (isEmpty) {
     return (
-      <div className="flex flex-col items-center justify-center py-20 text-center">
-        <div className="mb-4 text-muted">
-          <Sparkles size={40} strokeWidth={1.5} />
-        </div>
-        <h2 className="font-display font-semibold text-[18px] tracking-tightest leading-tight">
+      <div className="flex flex-col items-center justify-center py-16 text-center">
+        <LogoMark sizeClass="h-44 w-44 md:h-56 md:w-56" />
+        <h2 className="mt-4 font-display font-bold text-[28px] tracking-tightest leading-tight text-accent-bold">
           Nothing here yet
         </h2>
-        <p className="mt-1 max-w-xs text-[13px] text-muted leading-relaxed">
+        <p className="mt-2 max-w-sm text-[14px] text-muted leading-relaxed">
           Make a pixel-art shape, pick a style, and hit Publish — your work will land here.
         </p>
         <Link href="/" className="mt-6 inline-block">

@@ -98,7 +98,7 @@ function StudioInner() {
       */}
       <header className="px-6 pt-4 pb-3 flex items-center gap-3">
         <div className="flex items-center gap-3">
-          <LogoMark sizeClass="h-12 w-12" />
+          <LogoMark sizeClass="h-16 w-16" />
           <span className="cs-label hidden sm:inline">Pixel art into 3D</span>
         </div>
         <Link href="/gallery" className="ml-auto">
