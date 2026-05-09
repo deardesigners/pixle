@@ -36,7 +36,8 @@ export function ModelViewer() {
   );
 
   const render = STYLE_RENDER[currentStyle];
-  const isDark = currentStyle === 'neon' || currentStyle === 'mercury';
+  const isDark =
+    currentStyle === 'neon' || currentStyle === 'mercury' || currentStyle === 'disco';
 
   const onExportGif = async () => {
     if (isEmpty || exportingGif) return;
@@ -168,9 +169,13 @@ export function ModelViewer() {
         <EffectComposer multisampling={4} enableNormalPass={false}>
           <Bloom
             mipmapBlur
-            intensity={currentStyle === 'neon' ? 1.4 : 0.45}
-            luminanceThreshold={currentStyle === 'neon' ? 0.2 : 0.85}
-            luminanceSmoothing={0.4}
+            intensity={
+              currentStyle === 'disco' ? 3.2 : currentStyle === 'neon' ? 1.4 : 0.45
+            }
+            luminanceThreshold={
+              currentStyle === 'disco' ? 0.0 : currentStyle === 'neon' ? 0.2 : 0.85
+            }
+            luminanceSmoothing={currentStyle === 'disco' ? 0.6 : 0.4}
           />
           <ToneMapping mode={ToneMappingMode.ACES_FILMIC} />
         </EffectComposer>

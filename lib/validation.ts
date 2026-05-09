@@ -4,7 +4,8 @@ export const StyleIdSchema = z.enum([
   'voxel',
   'neon',
   'mercury',
-  'dhl'
+  'dhl',
+  'disco'
 ]);
 
 export const PixelDataSchema = z.object({
