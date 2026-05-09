@@ -1,10 +1,11 @@
 'use client';
 
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Instances, Instance } from '@react-three/drei';
 import * as THREE from 'three';
 import type { StyleId } from '@/lib/validation';
 import { buildMonoGroups, type MonoGroup } from '@/lib/voxelMesh';
+import { colorCubesDhl, getDhlMask, type DhlMask } from '@/lib/dhlBranded';
 
 export type StyledCube = { pos: [number, number, number]; color: THREE.Color };
 
@@ -54,6 +55,40 @@ export function StyledInstances({
           </mesh>
         ))}
       </group>
+    );
+  }
+
+  // DHL: маска лого подгружается асинхронно из /dhl-logo.svg, кешируется
+  // глобально (см. lib/dhlBranded). Пока грузится — все кубы жёлтые.
+  const [dhlMask, setDhlMask] = useState<DhlMask | null>(null);
+  useEffect(() => {
+    if (styleId !== 'dhl') return;
+    let cancelled = false;
+    getDhlMask()
+      .then((m) => { if (!cancelled) setDhlMask(m); })
+      .catch((e) => console.error('[dhl mask]', e));
+    return () => { cancelled = true; };
+  }, [styleId]);
+
+  const dhlCubes = useMemo(() => {
+    if (styleId !== 'dhl') return cubes;
+    if (!dhlMask) {
+      // Fallback пока маска не подгрузилась — просто жёлтые кубы.
+      const yellow = new THREE.Color(1, 0xcc / 255, 0);
+      return cubes.map((c) => ({ pos: c.pos, color: yellow }));
+    }
+    return colorCubesDhl(cubes, dhlMask);
+  }, [styleId, cubes, dhlMask]);
+
+  if (styleId === 'dhl') {
+    return (
+      <Instances limit={65536} range={dhlCubes.length} castShadow receiveShadow>
+        <boxGeometry args={[0.95, 0.95, 0.95]} />
+        <meshStandardMaterial wireframe={wireframe} roughness={0.65} metalness={0.05} />
+        {dhlCubes.map((c, i) => (
+          <Instance key={i} position={c.pos} color={c.color} />
+        ))}
+      </Instances>
     );
   }
 

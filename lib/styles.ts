@@ -37,6 +37,13 @@ export const STYLE_PRESETS: Record<StyleId, StylePreset> = {
     emoji: '🪞',
     description: 'Liquid chrome blob',
     idleAnimation: 'rotate'
+  },
+  dhl: {
+    id: 'dhl',
+    label: 'DHL',
+    emoji: '📦',
+    description: 'Yellow parcel branded with DHL logo',
+    idleAnimation: 'float'
   }
 };
 
@@ -54,5 +61,6 @@ export type StyleRenderConfig = {
 export const STYLE_RENDER: Record<StyleId, StyleRenderConfig> = {
   voxel:   { background: '#F3F0FF', ambient: 1.2, directional: 0.35, envIntensity: 0.05, envPreset: 'apartment', contactShadow: 0.5 },
   neon:    { background: '#07070F', ambient: 1.8, directional: 0.0, envIntensity: 0,    envPreset: 'night',     contactShadow: 0 },
-  mercury: { background: '#161B26', ambient: 0.3, directional: 0.45, envIntensity: 1.6,  envPreset: 'warehouse', contactShadow: 0 }
+  mercury: { background: '#161B26', ambient: 0.3, directional: 0.45, envIntensity: 1.6,  envPreset: 'warehouse', contactShadow: 0 },
+  dhl:     { background: '#FFCC00', ambient: 1.4, directional: 0.4, envIntensity: 0.2, envPreset: 'apartment', contactShadow: 0.5 }
 };
