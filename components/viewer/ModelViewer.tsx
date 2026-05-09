@@ -11,11 +11,12 @@ import { STYLE_PRESETS, STYLE_RENDER } from '@/lib/styles';
 import type { StyleId } from '@/lib/validation';
 import { Button } from '@/components/ui/button';
 import { Tooltip } from '@/components/ui/tooltip';
-import { RefreshCw, Layers, Save } from 'lucide-react';
+import { RefreshCw, Layers, Save, FileVideo } from 'lucide-react';
 import { toast } from '@/components/Toaster';
 import { cn } from '@/lib/utils';
 import { pixelsToCubes } from '@/lib/pixelToCubes';
 import { getClientId } from '@/lib/clientId';
+import { exportGif, downloadBlob } from '@/lib/gifExport';
 import { StyledInstances } from './StyledInstances';
 
 export function ModelViewer() {
@@ -24,7 +25,10 @@ export function ModelViewer() {
   const [resetSignal, setResetSignal] = useState(0);
   const [publishing, setPublishing] = useState(false);
   const [published, setPublished] = useState(false);
+  const [exportingGif, setExportingGif] = useState(false);
+  const [gifProgress, setGifProgress] = useState(0);
   const captureRef = useRef<(() => string | null) | null>(null);
+  const canvasElRef = useRef<HTMLCanvasElement | null>(null);
 
   const isEmpty = useMemo(
     () => Array.from(pixels).every((v, i) => (i % 4 === 3 ? v === 0 : true)),
@@ -33,6 +37,36 @@ export function ModelViewer() {
 
   const render = STYLE_RENDER[currentStyle];
   const isDark = currentStyle === 'crystal' || currentStyle === 'neon' || currentStyle === 'mercury';
+
+  const onExportGif = async () => {
+    if (isEmpty || exportingGif) return;
+    const canvas = canvasElRef.current;
+    if (!canvas) {
+      toast('Сцена ещё не готова');
+      return;
+    }
+    setExportingGif(true);
+    setGifProgress(0);
+    try {
+      const blob = await exportGif({
+        canvas,
+        width: 320,
+        height: 320,
+        fps: 24,
+        durationSec: 2.5,
+        background: render.background,
+        onProgress: setGifProgress
+      });
+      const stamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
+      downloadBlob(blob, `pixle-${currentStyle}-${stamp}.gif`);
+    } catch (err) {
+      console.error(err);
+      toast('Не удалось собрать GIF');
+    } finally {
+      setExportingGif(false);
+      setGifProgress(0);
+    }
+  };
 
   const onPublish = async () => {
     if (isEmpty || publishing) return;
@@ -112,6 +146,7 @@ export function ModelViewer() {
             wireframe={wireframe}
             resetSignal={resetSignal}
             registerCapture={(fn) => (captureRef.current = fn)}
+            registerCanvas={(el) => (canvasElRef.current = el)}
           />
           {render.contactShadow > 0 && (
             <ContactShadows position={[0, -1.05, 0]} opacity={render.contactShadow} scale={6} blur={2.4} far={2} />
@@ -198,6 +233,30 @@ export function ModelViewer() {
             )}
           </Button>
         </Tooltip>
+
+        <Tooltip
+          content={
+            isEmpty
+              ? 'Draw something first'
+              : exportingGif
+                ? `Recording GIF · ${Math.round(gifProgress * 100)}%`
+                : 'Export 2.5s loop as animated GIF'
+          }
+        >
+          <Button variant="secondary" onClick={onExportGif} disabled={isEmpty || exportingGif}>
+            {exportingGif ? (
+              <>
+                <span className="flex gap-1"><span className="ai-dot" /><span className="ai-dot" /><span className="ai-dot" /></span>
+                <span>{Math.round(gifProgress * 100)}%</span>
+              </>
+            ) : (
+              <>
+                <FileVideo className="h-[18px] w-[18px]" />
+                GIF
+              </>
+            )}
+          </Button>
+        </Tooltip>
       </div>
     </div>
   );
@@ -207,12 +266,14 @@ function LivePixelModel({
   styleId,
   wireframe,
   resetSignal,
-  registerCapture
+  registerCapture,
+  registerCanvas
 }: {
   styleId: StyleId;
   wireframe: boolean;
   resetSignal: number;
   registerCapture: (fn: () => string | null) => void;
+  registerCanvas: (el: HTMLCanvasElement | null) => void;
 }) {
   const { pixels, size, version } = useEditor();
   const { gl, camera } = useThree();
@@ -222,7 +283,9 @@ function LivePixelModel({
     registerCapture(() => {
       try { return gl.domElement.toDataURL('image/png'); } catch { return null; }
     });
-  }, [gl, registerCapture]);
+    registerCanvas(gl.domElement as HTMLCanvasElement);
+    return () => registerCanvas(null);
+  }, [gl, registerCapture, registerCanvas]);
 
   useEffect(() => {
     camera.position.set(3, 2.5, 3);
