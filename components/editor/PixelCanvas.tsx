@@ -53,10 +53,11 @@ export function PixelCanvas() {
     ctx.imageSmoothingEnabled = false;
     ctx.clearRect(0, 0, DISPLAY_PX, DISPLAY_PX);
 
-    // Светлый чекер: cream + лёгкий accent-light для альфа-зон
-    const cell = DISPLAY_PX / 16;
-    for (let y = 0; y < 16; y++) {
-      for (let x = 0; x < 16; x++) {
+    // Чекер «стола»: одна клетка шахматки = одна клетка пиксельной сетки,
+    // при 16/32/64 разметка масштабируется автоматически.
+    const cell = DISPLAY_PX / size;
+    for (let y = 0; y < size; y++) {
+      for (let x = 0; x < size; x++) {
         ctx.fillStyle = (x + y) % 2 === 0 ? '#FFFFFF' : '#E6EBF6';
         ctx.fillRect(x * cell, y * cell, cell, cell);
       }
