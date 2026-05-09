@@ -115,13 +115,13 @@ function StudioInner() {
 
         <div className="flex-1 flex flex-col md:grid md:grid-cols-2 gap-5 md:gap-6">
           <div className="relative cs-card aspect-square md:aspect-auto md:min-h-[560px] no-touch overflow-hidden">
-            <span className="absolute top-4 left-4 z-10 cs-label">
+            <span className="absolute top-6 left-6 z-10 cs-label">
               Editor · {size}×{size}
             </span>
-            <div className="absolute inset-0 flex items-center justify-center px-8 pt-16 pb-20">
+            <div className="absolute inset-0 flex items-center justify-center px-10 pt-20 pb-24">
               <PixelCanvas />
             </div>
-            <div className="absolute bottom-4 left-4 right-4 flex justify-center z-10">
+            <div className="absolute bottom-6 left-6 right-6 flex justify-center z-10">
               <Tooltip content="Generate a random shape · pick a random style">
                 <Button variant="default" onClick={randomize} aria-label="Generate random shape">
                   <Shuffle className="h-[18px] w-[18px]" />

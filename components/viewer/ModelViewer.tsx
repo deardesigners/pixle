@@ -190,17 +190,17 @@ export function ModelViewer() {
       */}
       <span
         className={cn(
-          'absolute top-4 left-4 z-10 text-[14px] font-medium tracking-tight',
+          'absolute top-6 left-6 z-10 text-[14px] font-medium tracking-tight',
           isDark ? 'text-white/55' : 'cs-label'
         )}
       >
         Render
       </span>
-      <div className="absolute top-4 left-1/2 -translate-x-1/2 z-10">
+      <div className="absolute top-6 left-1/2 -translate-x-1/2 z-10">
         <StyleSelector />
       </div>
 
-      <div className="absolute top-4 right-4 flex flex-col gap-1.5">
+      <div className="absolute top-6 right-6 flex flex-col gap-1.5">
         <Tooltip content="Reset camera view">
           <button
             onClick={() => setResetSignal((s) => s + 1)}
@@ -234,7 +234,7 @@ export function ModelViewer() {
         </Tooltip>
       </div>
 
-      <div className="absolute bottom-4 left-4 right-4 flex flex-wrap gap-2">
+      <div className="absolute bottom-6 left-6 right-6 flex flex-wrap gap-2">
         <Tooltip
           content={
             isEmpty
