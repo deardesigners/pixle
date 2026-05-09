@@ -85,48 +85,54 @@ function StudioInner() {
 
   return (
     <div className="min-h-screen flex flex-col">
-      <header className="sticky top-4 z-30 mx-4 mt-4 cs-capsule rounded-pill">
-        <div className="h-[64px] px-6 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="font-display font-bold text-[20px] tracking-tightest leading-none text-accent-bold">
-              Pixle
-            </div>
-            <span className="cs-label hidden sm:inline">Pixel art into 3D</span>
-          </div>
-          <Link href="/gallery">
-            <Button variant="default" size="sm">
-              <GalleryHorizontal className="h-3.5 w-3.5" />
-              Gallery
-            </Button>
-          </Link>
+      {/*
+        Хедер «на фоне» — без cs-capsule подложки. Просто лого + таглайн
+        прямо на странице, в одной строке с Gallery-кнопкой… кстати, нет:
+        Gallery теперь внутри editor-card'а, поэтому здесь только бренд.
+      */}
+      <header className="px-6 pt-6 pb-3">
+        <div className="flex items-baseline gap-3">
+          <span className="font-display font-bold text-[24px] tracking-tightest leading-none text-accent-bold">
+            Pixle
+          </span>
+          <span className="cs-label hidden sm:inline">Pixel art into 3D</span>
         </div>
       </header>
 
       {/*
-        Десктоп: двухколоночная сетка. Toolbar на всю ширину сверху,
-        слева — Editor + PressurePanel, справа — StyleSelector + ModelViewer.
-        На мобильном секции «исчезают» через display:contents — их дети
-        попадают напрямую в flex-col главного контейнера, и порядок
-        перестраивается через order-1..5.
+        Десктоп: двухколоночная сетка. Toolbar сверху на всю ширину,
+        слева — Editor (внутри: style chips + Gallery, canvas, Random),
+        справа — Render. Карточки растягиваются flex-1 → одинаковая высота.
 
-        Мобильный порядок: Toolbar → Editor → ModelViewer → StyleSelector
-        → PressurePanel. Render-зона стоит сразу под редактором и
-        квадратной формы (aspect-square).
+        Мобильный (display:contents на секциях): Toolbar → Editor → Render →
+        PressurePanel.
       */}
-      <main className="flex-1 flex flex-col md:grid md:grid-cols-2 gap-5 md:gap-6 p-6 pt-6">
+      <main className="flex-1 flex flex-col md:grid md:grid-cols-2 gap-5 md:gap-6 p-6 pt-2">
         <div className="order-1 md:order-none md:col-span-2">
           <Toolbar />
         </div>
 
         <section className="contents md:flex md:flex-col md:gap-5">
-          <div className="order-2 md:order-none relative cs-card flex items-center justify-center aspect-square md:aspect-auto md:min-h-[440px] md:flex-1 no-touch overflow-hidden p-8">
-            <span className="absolute top-6 left-8 cs-label z-10">Editor · {size}×{size}</span>
-            <PixelCanvas />
+          <div className="order-2 md:order-none relative cs-card aspect-square md:aspect-auto md:min-h-[560px] md:flex-1 no-touch overflow-hidden">
             {/*
-              Random — оверлей в нижнем-левом углу editor-card, симметрично
-              Publish/GIF в render-card. Высота / отступы наследуются от
-              cs-btn--accent (44px, 22px паддинг) — кнопки выровнены.
+              Top row: Editor label + style chips + Gallery. Floating над
+              canvas'ом (z-10), не блокирует drawing-область.
             */}
+            <div className="absolute top-4 left-4 right-4 z-10 flex items-center justify-between gap-3 flex-wrap">
+              <span className="cs-label shrink-0">Editor · {size}×{size}</span>
+              <StyleSelector />
+              <Link href="/gallery" className="shrink-0">
+                <Button variant="default" size="sm" aria-label="Open gallery">
+                  <GalleryHorizontal className="h-3.5 w-3.5" />
+                  Gallery
+                </Button>
+              </Link>
+            </div>
+            {/* Canvas, центрируется, отступы под верхнюю и нижнюю панели. */}
+            <div className="absolute inset-0 flex items-center justify-center px-8 pt-20 pb-20">
+              <PixelCanvas />
+            </div>
+            {/* Random — bottom-left, симметрично Publish/GIF в render-card. */}
             <div className="absolute bottom-4 left-4 right-4 flex flex-wrap gap-2 z-10">
               <Tooltip content="Generate a random shape · pick a random style">
                 <Button variant="default" onClick={randomize} aria-label="Generate random shape">
@@ -142,10 +148,7 @@ function StudioInner() {
         </section>
 
         <section className="contents md:flex md:flex-col md:gap-5">
-          <div className="order-4 md:order-none">
-            <StyleSelector />
-          </div>
-          <div className="order-3 md:order-none aspect-square md:aspect-auto md:min-h-[480px] md:flex-1">
+          <div className="order-3 md:order-none aspect-square md:aspect-auto md:min-h-[560px] md:flex-1">
             <ModelViewer />
           </div>
         </section>
