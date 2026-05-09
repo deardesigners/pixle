@@ -90,10 +90,12 @@ function StudioInner() {
         Gallery теперь внутри editor-card'а, поэтому здесь только бренд.
       */}
       <header className="px-6 pt-6 pb-3 flex items-center gap-3">
-        <span className="font-display font-bold text-[24px] tracking-tightest leading-none text-accent-bold">
-          Pixle
-        </span>
-        <span className="cs-label hidden sm:inline self-end pb-[2px]">Pixel art into 3D</span>
+        <div className="flex items-baseline gap-3">
+          <span className="font-display font-bold text-[24px] tracking-tightest leading-none text-accent-bold">
+            Pixle
+          </span>
+          <span className="cs-label hidden sm:inline">Pixel art into 3D</span>
+        </div>
         <Link href="/gallery" className="ml-auto">
           <Tooltip content="Browse the public gallery">
             <Button variant="default" aria-label="Open gallery" className="cs-glow">
