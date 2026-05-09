@@ -20,6 +20,18 @@ let texturePromise: Promise<THREE.Texture> | null = null;
 export function getDhlTexture(): Promise<THREE.Texture> {
   if (texturePromise) return texturePromise;
   texturePromise = (async () => {
+    // Ждём пока браузер прогрузит шрифты — иначе при первом запуске
+    // (особенно если DHL — initial random style) fillText рисует
+    // дефолтным sans-serif fallback'ом, и текстура иногда уезжает
+    // тонким текстом или вообще пустой. document.fonts.ready решает.
+    if (typeof document !== 'undefined' && 'fonts' in document) {
+      try {
+        await document.fonts.ready;
+      } catch {
+        // ignore — fallback на sans-serif лучше чем падение
+      }
+    }
+
     const canvas = document.createElement('canvas');
     canvas.width = TEX_SIZE;
     canvas.height = TEX_SIZE;

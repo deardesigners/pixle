@@ -14,6 +14,7 @@ import { Button } from '@/components/ui/button';
 import { Tooltip } from '@/components/ui/tooltip';
 import { GalleryHorizontal, Shuffle } from 'lucide-react';
 import { toast } from '@/components/Toaster';
+import { getDhlTexture } from '@/lib/dhlBranded';
 
 type AppConfig = { hasBlob: boolean; hasPostgres: boolean };
 
@@ -41,6 +42,10 @@ function StudioInner() {
       .then((r) => r.json())
       .then((c: AppConfig) => setConfig(c))
       .catch(() => setConfig({ hasBlob: false, hasPostgres: false }));
+    // Прогреваем DHL-текстуру в фоне на старте — к моменту когда юзер
+    // переключится на DHL (или это окажется initial random style),
+    // canvas с лого будет уже сгенерирован и закеширован.
+    getDhlTexture().catch(() => {});
   }, []);
 
   // Auto-generate стартовую фигуру + случайный стиль на первой загрузке.
