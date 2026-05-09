@@ -44,14 +44,10 @@ export function ModelPreview({
       <EffectComposer multisampling={2} enableNormalPass={false}>
         <Bloom
           mipmapBlur
-          intensity={
-            styleId === 'disco' ? 5.5 : styleId === 'neon' ? 1.4 : 0.4
-          }
-          luminanceThreshold={
-            styleId === 'disco' ? 0.0 : styleId === 'neon' ? 0.2 : 0.85
-          }
-          luminanceSmoothing={styleId === 'disco' ? 0.7 : 0.4}
-          kernelSize={styleId === 'disco' ? KernelSize.HUGE : KernelSize.LARGE}
+          intensity={render.bloom.intensity}
+          luminanceThreshold={render.bloom.threshold}
+          luminanceSmoothing={render.bloom.smoothing}
+          kernelSize={render.bloom.kernel === 'huge' ? KernelSize.HUGE : KernelSize.LARGE}
         />
         <ToneMapping mode={ToneMappingMode.ACES_FILMIC} />
       </EffectComposer>
