@@ -96,9 +96,9 @@ function StudioInner() {
         Header sits directly on the page background. Brand wordmark and
         tagline share a baseline; Gallery CTA is anchored to the right.
       */}
-      <header className="px-6 pt-4 pb-3 flex items-center gap-3">
+      <header className="px-6 h-20 flex items-center gap-3">
         <div className="flex items-center gap-3">
-          <LogoMark sizeClass="h-16 w-16" />
+          <LogoMark sizeClass="h-20 w-20" />
           <span className="cs-label hidden sm:inline">Pixel art into 3D</span>
         </div>
         <Link href="/gallery" className="ml-auto">

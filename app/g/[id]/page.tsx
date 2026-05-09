@@ -79,9 +79,9 @@ export default async function WorkPage({ params }: Params) {
       />
 
       {/* Studio-parity header: rotating 3D logo + work label, primary CTA back to gallery (with glow). */}
-      <header className="px-6 pt-4 pb-3 flex items-center gap-3">
+      <header className="px-6 h-20 flex items-center gap-3">
         <Link href="/" aria-label="Pixle home" className="flex items-center gap-3">
-          <LogoMark sizeClass="h-16 w-16" />
+          <LogoMark sizeClass="h-20 w-20" />
           <span className="cs-label hidden sm:inline">
             {styleLabel} · {size}×{size}
           </span>
