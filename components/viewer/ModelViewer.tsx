@@ -202,23 +202,16 @@ export function ModelViewer() {
       </Canvas>
 
       {/*
-        Mobile (<sm): Render label + style chips share a wrapping row,
-          right edge stops short of the Reset/wireframe cluster.
-        sm+: Render label anchored top-left; style chips centered.
-        backdrop-blur on the chips keeps them readable on dark styles.
+        Mobile (<sm): chips alone at top-left, no Render label, no
+          Reset/wireframe — keeps the small render card uncluttered.
+        sm+: Render label pinned left, chips centered, controls top-right.
       */}
-      <div
-        className={cn(
-          'sm:hidden absolute top-6 left-6 right-20 z-10 flex items-center gap-2 flex-wrap',
-          isDark ? 'text-white/55' : 'text-text'
-        )}
-      >
-        <span className="cs-label shrink-0">Render</span>
+      <div className="sm:hidden absolute top-6 left-6 right-6 z-10 flex flex-wrap gap-2">
         <StyleSelector />
       </div>
       <span
         className={cn(
-          'hidden sm:inline absolute top-6 left-6 z-10 text-[14px] font-medium tracking-tight',
+          'hidden md:inline absolute top-6 left-6 z-10 text-[14px] font-medium tracking-tight',
           isDark ? 'text-white/55' : 'cs-label'
         )}
       >
@@ -228,7 +221,7 @@ export function ModelViewer() {
         <StyleSelector />
       </div>
 
-      <div className="absolute top-6 right-6 flex flex-col gap-1.5">
+      <div className="hidden sm:flex absolute top-6 right-6 flex-col gap-1.5">
         <Tooltip content="Reset camera view">
           <button
             onClick={() => setResetSignal((s) => s + 1)}
@@ -303,8 +296,9 @@ export function ModelViewer() {
             onClick={onExportGif}
             disabled={isEmpty || exportingGif}
             className={cn(
-              // Match Publish (cs-btn--accent) dimensions so the two CTAs sit on the same baseline.
-              '!h-11 !px-[22px] !text-[13px] !font-light tracking-[0.02em] lowercase',
+              // Match Publish (cs-btn--accent) dimensions exactly so the two
+              // CTAs read as a button pair: 48px tall, 26px horizontal padding.
+              '!h-12 !px-[26px] !text-[16px] !font-bold',
               isDark &&
                 '!text-white !border-white/40 hover:!border-white hover:!text-white hover:!bg-white/15'
             )}
