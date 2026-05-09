@@ -51,25 +51,6 @@ export function StyledInstances({
     return () => { cancelled = true; };
   }, [styleId]);
 
-  // Disco — DUNE-палитра (cyan/orange/red) с HDR-значениями.
-  // Disco — сохраняем оттенок исходного пикселя (форма читается),
-  // прибиваем насыщенность к 1.0 и умножаем RGB на HDR-multiplier чтобы
-  // каждый куб блумился собственным цветом без размытия в белое пятно.
-  const discoCubes = useMemo(() => {
-    if (styleId !== 'disco') return cubes;
-    const hdr = 2.4;
-    return cubes.map((c) => {
-      const hsl = { h: 0, s: 0, l: 0 };
-      c.color.getHSL(hsl);
-      const out = new THREE.Color();
-      out.setHSL(hsl.h, 1.0, 0.55);
-      out.r *= hdr;
-      out.g *= hdr;
-      out.b *= hdr;
-      return { pos: c.pos, color: out };
-    });
-  }, [styleId, cubes]);
-
   // Дальше — только условные рендеры, никаких хуков.
 
   if (styleId === 'mercury') {
@@ -115,23 +96,6 @@ export function StyledInstances({
         />
         {cubes.map((c, i) => (
           <Instance key={i} position={c.pos} />
-        ))}
-      </Instances>
-    );
-  }
-
-  if (styleId === 'disco') {
-    return (
-      <Instances
-        limit={65536}
-        range={discoCubes.length}
-        castShadow={false}
-        receiveShadow={false}
-      >
-        <boxGeometry args={[0.95, 0.95, 0.95]} />
-        <meshBasicMaterial toneMapped={false} wireframe={wireframe} />
-        {discoCubes.map((c, i) => (
-          <Instance key={i} position={c.pos} color={c.color} />
         ))}
       </Instances>
     );

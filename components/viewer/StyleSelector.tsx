@@ -13,7 +13,7 @@ export function StyleSelector() {
         <span className="cs-label">Style</span>
         <span className="cs-label">{STYLE_PRESETS[currentStyle].label}</span>
       </div>
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2.5">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
         {STYLE_LIST.map((s) => (
           <Tooltip key={s.id} content={s.description}>
             <button
