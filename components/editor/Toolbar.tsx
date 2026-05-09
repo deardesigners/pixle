@@ -87,7 +87,7 @@ export function Toolbar() {
         </div>
       </div>
 
-      <div className="w-px h-7 bg-text/10" />
+      <div className="hidden md:block w-px h-7 bg-text/10" />
 
       <div className="flex items-center gap-1.5">
         {TOOLS.map(({ id, label, Icon }) => (
@@ -108,11 +108,11 @@ export function Toolbar() {
         ))}
       </div>
 
-      <div className="w-px h-7 bg-text/10" />
+      <div className="hidden md:block w-px h-7 bg-text/10" />
 
       <ColorPalette />
 
-      <div className="w-px h-7 bg-text/10" />
+      <div className="hidden md:block w-px h-7 bg-text/10" />
 
       <div className="flex items-center gap-3 min-w-[170px] flex-1">
         <span className="cs-label">Brush</span>

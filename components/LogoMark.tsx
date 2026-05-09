@@ -31,8 +31,14 @@ export function LogoMark({ className, sizeClass = 'h-10 w-10' }: Props) {
       className={cn('inline-block shrink-0 align-middle', sizeClass, className)}
     >
       <Canvas
-        camera={{ position: [2.6, 2, 2.6], fov: 45 }}
-        dpr={[1, 1.5]}
+        // Tighter than ModelPreview's preset so the mark fills the small
+        // square, but with enough headroom that the model's diagonal
+        // (~√2 of its side) doesn't clip while spinning around Y.
+        camera={{ position: [2.2, 1.6, 2.2], fov: 36 }}
+        // Render at 2-3x device pixel ratio so the small 80px box stays
+        // crisp on retina screens — at the default [1, 1.5] cap the
+        // wordmark looked muddy.
+        dpr={[2, 3]}
         gl={{ antialias: true, alpha: true, premultipliedAlpha: false }}
         style={{ background: 'transparent' }}
       >
