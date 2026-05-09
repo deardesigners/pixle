@@ -18,26 +18,54 @@ export function StyledInstances({
   styleId: StyleId;
   wireframe?: boolean;
 }) {
-  // Mercury получает монолитный merged mesh с дедупликацией вершин и
-  // сглаженными нормалями — выглядит как цельная форма, не россыпь шариков.
-  const isSmoothStyle = styleId === 'mercury';
+  // ВСЕ хуки должны вызываться на каждом рендере и в одинаковом порядке —
+  // поэтому объявляем их здесь, до любых ранних return'ов. React запоминает
+  // порядок вызова на первом рендере; если на следующем рендере ранний
+  // return пропустит часть хуков — следующие useState/useEffect получат
+  // «не свой» слот и приложение крашнется.
 
+  // Mercury — монолитный merged mesh, дедуп вершин, сглаженные нормали.
+  const isSmoothStyle = styleId === 'mercury';
   const monoGroups = useMemo<MonoGroup[]>(() => {
     if (!isSmoothStyle) return [];
     return buildMonoGroups(cubes, 1.0);
   }, [cubes, isSmoothStyle]);
 
-  // Цилиндр для neon: ось вдоль X (горизонтальная трубка), длина = шаг
-  // клетки (1.0), радиус 0.5. Соседние воксели в одной строке (одинаковый
-  // Y и Z) стыкуются торцами без зазоров и формируют непрерывную трубку
-  // по горизонтали. По Y/Z — круглое сечение, касание соседей на гранях.
+  // Neon — горизонтальный цилиндр (ось X), длина 1.0, радиус 0.5.
   const neonCylinder = useMemo(() => {
     const g = new THREE.CylinderGeometry(0.5, 0.5, 1.0, 18, 1, false);
-    // Default cylinder ось — Y. rotateZ(π/2) делает ось X.
     g.rotateZ(Math.PI / 2);
     return g;
   }, []);
   useEffect(() => () => neonCylinder.dispose(), [neonCylinder]);
+
+  // DHL — текстура «жёлтый фон + красный лого» одна на все грани каждого
+  // куба. Подгружается асинхронно из public/dhl-logo.svg.
+  const [dhlTex, setDhlTex] = useState<THREE.Texture | null>(null);
+  useEffect(() => {
+    if (styleId !== 'dhl') return;
+    let cancelled = false;
+    getDhlTexture()
+      .then((t) => { if (!cancelled) setDhlTex(t); })
+      .catch((e) => console.error('[dhl texture]', e));
+    return () => { cancelled = true; };
+  }, [styleId]);
+
+  // Disco — DUNE-палитра (cyan/orange/red) с HDR-значениями.
+  const discoCubes = useMemo(() => {
+    if (styleId !== 'disco') return cubes;
+    const cyan = new THREE.Color().setRGB(0.0, 4.5, 5.5);
+    const orange = new THREE.Color().setRGB(5.5, 1.6, 0.05);
+    const red = new THREE.Color().setRGB(5.0, 0.3, 0.4);
+    return cubes.map((c) => {
+      const hsl = { h: 0, s: 0, l: 0 };
+      c.color.getHSL(hsl);
+      const palette = hsl.l > 0.6 ? cyan : hsl.l > 0.35 ? orange : red;
+      return { pos: c.pos, color: palette.clone() };
+    });
+  }, [styleId, cubes]);
+
+  // Дальше — только условные рендеры, никаких хуков.
 
   if (styleId === 'mercury') {
     return (
@@ -59,19 +87,6 @@ export function StyledInstances({
     );
   }
 
-  // DHL: текстура (жёлтый фон + красный лого) подгружается асинхронно
-  // и применяется как map ко всем граням каждого кубика. Пока грузится —
-  // material color жёлтый и без map'а.
-  const [dhlTex, setDhlTex] = useState<THREE.Texture | null>(null);
-  useEffect(() => {
-    if (styleId !== 'dhl') return;
-    let cancelled = false;
-    getDhlTexture()
-      .then((t) => { if (!cancelled) setDhlTex(t); })
-      .catch((e) => console.error('[dhl texture]', e));
-    return () => { cancelled = true; };
-  }, [styleId]);
-
   if (styleId === 'dhl') {
     return (
       <Instances limit={65536} range={cubes.length} castShadow receiveShadow>
@@ -90,28 +105,14 @@ export function StyledInstances({
     );
   }
 
-  // Disco: палитра DUNE (cyan / orange / red) — три ярких HDR-цвета,
-  // распределённых по яркости пикселя. Значения >1.0 пробивают порог
-  // bloom'а и дают «дикий» радужный световой шторм вокруг каждого куба.
-  const discoCubes = useMemo(() => {
-    if (styleId !== 'disco') return cubes;
-    const cyan = new THREE.Color().setRGB(0.0, 4.5, 5.5);
-    const orange = new THREE.Color().setRGB(5.5, 1.6, 0.05);
-    const red = new THREE.Color().setRGB(5.0, 0.3, 0.4);
-    return cubes.map((c) => {
-      const hsl = { h: 0, s: 0, l: 0 };
-      c.color.getHSL(hsl);
-      // Делим на три бакета по lightness — светлое в cyan, среднее в
-      // orange, тёмное в red. Получается контрастное «триколор-неон».
-      const palette = hsl.l > 0.6 ? cyan : hsl.l > 0.35 ? orange : red;
-      return { pos: c.pos, color: palette.clone() };
-    });
-  }, [styleId, cubes]);
-
   if (styleId === 'disco') {
-    // toneMapped=false — цвета не зажимаются, проходят в bloom как HDR.
     return (
-      <Instances limit={65536} range={discoCubes.length} castShadow={false} receiveShadow={false}>
+      <Instances
+        limit={65536}
+        range={discoCubes.length}
+        castShadow={false}
+        receiveShadow={false}
+      >
         <boxGeometry args={[0.95, 0.95, 0.95]} />
         <meshBasicMaterial toneMapped={false} wireframe={wireframe} />
         {discoCubes.map((c, i) => (
@@ -122,9 +123,13 @@ export function StyledInstances({
   }
 
   if (styleId === 'neon') {
-    // toneMapped=false — цвета идут в композитор без сжатия, Bloom их подхватит.
     return (
-      <Instances limit={65536} range={cubes.length} castShadow={false} receiveShadow={false}>
+      <Instances
+        limit={65536}
+        range={cubes.length}
+        castShadow={false}
+        receiveShadow={false}
+      >
         <primitive object={neonCylinder} attach="geometry" />
         <meshBasicMaterial toneMapped={false} wireframe={wireframe} />
         {cubes.map((c, i) => (
@@ -134,7 +139,7 @@ export function StyledInstances({
     );
   }
 
-  // voxel — кубы остаются как есть, это его идентичность
+  // voxel — дефолтные кубы.
   return (
     <Instances limit={65536} range={cubes.length} castShadow receiveShadow>
       <boxGeometry args={[0.95, 0.95, 0.95]} />
