@@ -260,6 +260,8 @@ export function ModelViewer() {
             onClick={onExportGif}
             disabled={isEmpty || exportingGif}
             className={cn(
+              // Match Publish (cs-btn--accent) dimensions so the two CTAs sit on the same baseline.
+              '!h-11 !px-[22px] !text-[13px] !font-light tracking-[0.02em] lowercase',
               isDark &&
                 '!text-white !border-white/40 hover:!border-white hover:!text-white hover:!bg-white/15'
             )}
