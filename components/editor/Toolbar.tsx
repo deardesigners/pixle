@@ -33,9 +33,19 @@ export function Toolbar() {
 
   const onUploadClick = () => fileInputRef.current?.click();
 
+  const onClear = () => {
+    const prevSnapshot = new Uint8ClampedArray(currentPixels);
+    const prevSize = size;
+    clear();
+    toast('Canvas cleared', {
+      label: 'Undo',
+      onClick: () => loadPixelData(prevSize, pixelsToFlat(prevSnapshot))
+    });
+  };
+
   const onFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    e.target.value = ''; // позволяет повторно выбрать тот же файл
+    e.target.value = ''; // allow selecting the same file again
     if (!file) return;
     const prevSnapshot = new Uint8ClampedArray(currentPixels);
     const prevSize = size;
@@ -49,7 +59,7 @@ export function Toolbar() {
       });
     } catch (err) {
       console.error(err);
-      toast('Не удалось загрузить картинку');
+      toast("Couldn't import that image. Try a different file.");
     }
   };
 
@@ -145,7 +155,7 @@ export function Toolbar() {
           </button>
         </Tooltip>
         <Tooltip content="Clear">
-          <button onClick={clear} aria-label="Clear" className="h-11 w-11 inline-flex items-center justify-center rounded-pill text-text/50 hover:text-text hover:bg-text/5 transition-colors">
+          <button onClick={onClear} aria-label="Clear" className="h-11 w-11 inline-flex items-center justify-center rounded-pill text-text/50 hover:text-text hover:bg-text/5 transition-colors">
             <Trash2 className="h-[18px] w-[18px]" />
           </button>
         </Tooltip>

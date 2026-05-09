@@ -41,14 +41,14 @@ function StudioInner() {
       .then((r) => r.json())
       .then((c: AppConfig) => setConfig(c))
       .catch(() => setConfig({ hasBlob: false, hasPostgres: false }));
-    // Прогреваем DHL-текстуру в фоне на старте — к моменту когда юзер
-    // переключится на DHL (или это окажется initial random style),
-    // canvas с лого будет уже сгенерирован и закеширован.
+    // Warm up the DHL texture in the background — by the time the user
+    // switches to DHL (or it gets picked as the initial random style)
+    // the logo canvas is already generated and cached.
     getDhlTexture().catch(() => {});
   }, []);
 
-  // Auto-generate стартовую фигуру + случайный стиль на первой загрузке.
-  // Не запускаем когда пришёл remix-параметр — там грузится работа из галереи.
+  // Auto-generate a starter shape + random style on first load.
+  // Skipped when ?remix= is set — that flow loads a saved work from the gallery.
   const seededRef = useRef(false);
   useEffect(() => {
     if (remixId || seededRef.current) return;
@@ -64,30 +64,36 @@ function StudioInner() {
     remixHandled.current = true;
     const prevSnapshot = new Uint8ClampedArray(pixels);
     const prevSize = size;
-    fetch(`/api/gallery/${remixId}`)
-      .then((r) => (r.ok ? r.json() : Promise.reject()))
-      .then((data: { pixel_data: { size: number; pixels: number[][] }; style_id: string }) => {
-        loadPixelData(data.pixel_data.size, data.pixel_data.pixels);
-        toast('Loaded from gallery', {
-          label: 'Undo',
-          onClick: () => {
-            loadPixelData(prevSize, pixelsToFlat(prevSnapshot));
-          }
-        });
-        const url = new URL(window.location.href);
-        url.searchParams.delete('remix');
-        router.replace(url.pathname);
-      })
-      .catch(() => toast('Не удалось загрузить ремикс'));
+    const loadRemix = () =>
+      fetch(`/api/gallery/${remixId}`)
+        .then((r) => (r.ok ? r.json() : Promise.reject()))
+        .then((data: { pixel_data: { size: number; pixels: number[][] }; style_id: string }) => {
+          loadPixelData(data.pixel_data.size, data.pixel_data.pixels);
+          toast('Loaded from gallery', {
+            label: 'Undo',
+            onClick: () => {
+              loadPixelData(prevSize, pixelsToFlat(prevSnapshot));
+            }
+          });
+          const url = new URL(window.location.href);
+          url.searchParams.delete('remix');
+          router.replace(url.pathname);
+        })
+        .catch(() =>
+          toast("Couldn't load that work. It may have been removed.", {
+            label: 'Retry',
+            onClick: loadRemix
+          })
+        );
+    loadRemix();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [remixId]);
 
   return (
     <div className="min-h-screen flex flex-col">
       {/*
-        Хедер «на фоне» — без cs-capsule подложки. Просто лого + таглайн
-        прямо на странице, в одной строке с Gallery-кнопкой… кстати, нет:
-        Gallery теперь внутри editor-card'а, поэтому здесь только бренд.
+        Header sits directly on the page background. Brand wordmark and
+        tagline share a baseline; Gallery CTA is anchored to the right.
       */}
       <header className="px-6 pt-6 pb-3 flex items-center gap-3">
         <div className="flex items-baseline gap-3">
@@ -107,10 +113,10 @@ function StudioInner() {
       </header>
 
       {/*
-        Toolbar сверху, под ним сетка из editor + render одинаковой высоты,
-        ниже PressurePanel (только если детектится stylus). PressurePanel
-        вынесен из колонок — иначе его высота укорачивала editor-card относительно
-        render-card.
+        Toolbar on top, then equal-height editor + render grid, then
+        PressurePanel (only mounts when a stylus is detected). PressurePanel
+        lives outside the columns so its height never shortens the editor
+        card relative to the render card.
       */}
       <main className="flex-1 flex flex-col gap-5 md:gap-6 p-6 pt-2">
         <Toolbar />

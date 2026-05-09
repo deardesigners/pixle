@@ -59,7 +59,7 @@ export function GalleryCard({
       } catch {
         setLiked(prevLiked);
         setCount(prevCount);
-        toast('Не удалось поставить лайк');
+        toast("Couldn't update like. Try again.");
       }
     });
   };
