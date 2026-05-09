@@ -27,13 +27,14 @@ export function StyledInstances({
     return buildMonoGroups(cubes, 1.0);
   }, [cubes, isSmoothStyle]);
 
-  // Цилиндр для neon: ось вдоль Z, длина точно равна шагу слоя (1.0),
-  // чтобы соседние воксели в одной X,Y-колонке стыковались торцами без
-  // зазоров и формировали непрерывную трубу. Радиус 0.5 = диаметр клетки,
-  // края цилиндров касаются по X/Y.
+  // Цилиндр для neon: ось вдоль X (горизонтальная трубка), длина = шаг
+  // клетки (1.0), радиус 0.5. Соседние воксели в одной строке (одинаковый
+  // Y и Z) стыкуются торцами без зазоров и формируют непрерывную трубку
+  // по горизонтали. По Y/Z — круглое сечение, касание соседей на гранях.
   const neonCylinder = useMemo(() => {
     const g = new THREE.CylinderGeometry(0.5, 0.5, 1.0, 18, 1, false);
-    g.rotateX(Math.PI / 2);
+    // Default cylinder ось — Y. rotateZ(π/2) делает ось X.
+    g.rotateZ(Math.PI / 2);
     return g;
   }, []);
   useEffect(() => () => neonCylinder.dispose(), [neonCylinder]);
