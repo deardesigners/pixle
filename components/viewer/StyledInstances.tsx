@@ -5,7 +5,7 @@ import { Instances, Instance } from '@react-three/drei';
 import * as THREE from 'three';
 import type { StyleId } from '@/lib/validation';
 import { buildMonoGroups, type MonoGroup } from '@/lib/voxelMesh';
-import { colorCubesDhl, getDhlMask, type DhlMask } from '@/lib/dhlBranded';
+import { getDhlTexture } from '@/lib/dhlBranded';
 
 export type StyledCube = { pos: [number, number, number]; color: THREE.Color };
 
@@ -59,54 +59,52 @@ export function StyledInstances({
     );
   }
 
-  // DHL: маска лого подгружается асинхронно из /dhl-logo.svg, кешируется
-  // глобально (см. lib/dhlBranded). Пока грузится — все кубы жёлтые.
-  const [dhlMask, setDhlMask] = useState<DhlMask | null>(null);
+  // DHL: текстура (жёлтый фон + красный лого) подгружается асинхронно
+  // и применяется как map ко всем граням каждого кубика. Пока грузится —
+  // material color жёлтый и без map'а.
+  const [dhlTex, setDhlTex] = useState<THREE.Texture | null>(null);
   useEffect(() => {
     if (styleId !== 'dhl') return;
     let cancelled = false;
-    getDhlMask()
-      .then((m) => { if (!cancelled) setDhlMask(m); })
-      .catch((e) => console.error('[dhl mask]', e));
+    getDhlTexture()
+      .then((t) => { if (!cancelled) setDhlTex(t); })
+      .catch((e) => console.error('[dhl texture]', e));
     return () => { cancelled = true; };
   }, [styleId]);
 
-  const dhlCubes = useMemo(() => {
-    if (styleId !== 'dhl') return cubes;
-    if (!dhlMask) {
-      // Fallback пока маска не подгрузилась — просто жёлтые кубы.
-      const yellow = new THREE.Color(1, 0xcc / 255, 0);
-      return cubes.map((c) => ({ pos: c.pos, color: yellow }));
-    }
-    return colorCubesDhl(cubes, dhlMask);
-  }, [styleId, cubes, dhlMask]);
-
   if (styleId === 'dhl') {
     return (
-      <Instances limit={65536} range={dhlCubes.length} castShadow receiveShadow>
+      <Instances limit={65536} range={cubes.length} castShadow receiveShadow>
         <boxGeometry args={[0.95, 0.95, 0.95]} />
-        <meshStandardMaterial wireframe={wireframe} roughness={0.65} metalness={0.05} />
-        {dhlCubes.map((c, i) => (
-          <Instance key={i} position={c.pos} color={c.color} />
+        <meshStandardMaterial
+          wireframe={wireframe}
+          map={dhlTex ?? null}
+          color={dhlTex ? '#ffffff' : '#FFCC00'}
+          roughness={0.6}
+          metalness={0.05}
+        />
+        {cubes.map((c, i) => (
+          <Instance key={i} position={c.pos} />
         ))}
       </Instances>
     );
   }
 
-  // Disco: цвет каждого кубика поднимается в HSL до максимума насыщенности
-  // и яркости. На чёрном фоне + сильном bloom это даёт «дикое радужное
-  // свечение» — каждый куб ощущается как самостоятельный источник света.
+  // Disco: палитра DUNE (cyan / orange / red) — три ярких HDR-цвета,
+  // распределённых по яркости пикселя. Значения >1.0 пробивают порог
+  // bloom'а и дают «дикий» радужный световой шторм вокруг каждого куба.
   const discoCubes = useMemo(() => {
     if (styleId !== 'disco') return cubes;
+    const cyan = new THREE.Color().setRGB(0.0, 4.5, 5.5);
+    const orange = new THREE.Color().setRGB(5.5, 1.6, 0.05);
+    const red = new THREE.Color().setRGB(5.0, 0.3, 0.4);
     return cubes.map((c) => {
       const hsl = { h: 0, s: 0, l: 0 };
       c.color.getHSL(hsl);
-      // Тёмные/блёклые пиксели вынесём в зону supersaturated — иначе чёрные
-      // волосы и глаза превращаются в чёрные дырки без свечения.
-      const lightness = Math.max(0.5, Math.min(0.7, hsl.l + 0.15));
-      const out = new THREE.Color();
-      out.setHSL(hsl.h, 1.0, lightness);
-      return { pos: c.pos, color: out };
+      // Делим на три бакета по lightness — светлое в cyan, среднее в
+      // orange, тёмное в red. Получается контрастное «триколор-неон».
+      const palette = hsl.l > 0.6 ? cyan : hsl.l > 0.35 ? orange : red;
+      return { pos: c.pos, color: palette.clone() };
     });
   }, [styleId, cubes]);
 
