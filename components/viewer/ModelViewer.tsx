@@ -20,7 +20,7 @@ import { exportGif, downloadBlob } from '@/lib/gifExport';
 import { StyledInstances } from './StyledInstances';
 
 export function ModelViewer() {
-  const { pixels, size, currentStyle } = useEditor();
+  const { pixels, size, version, currentStyle } = useEditor();
   const [wireframe, setWireframe] = useState(false);
   const [resetSignal, setResetSignal] = useState(0);
   const [publishing, setPublishing] = useState(false);
@@ -30,9 +30,14 @@ export function ModelViewer() {
   const captureRef = useRef<(() => string | null) | null>(null);
   const canvasElRef = useRef<HTMLCanvasElement | null>(null);
 
+  // pixels — Uint8ClampedArray, мутируется in-place; ссылка не меняется.
+  // version форсирует пересчёт когда buffer меняют (paint, undo, import,
+  // remix). Без неё isEmpty залипал на initial true и Publish/GIF
+  // оставались disabled навсегда.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const isEmpty = useMemo(
     () => Array.from(pixels).every((v, i) => (i % 4 === 3 ? v === 0 : true)),
-    [pixels]
+    [pixels, version]
   );
 
   const render = STYLE_RENDER[currentStyle];
