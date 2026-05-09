@@ -93,8 +93,18 @@ export function StyledInstances({
   }
 
   if (styleId === 'dhl') {
+    // key={dhlTex ? 'tex' : 'plain'} — при появлении текстуры Instances
+    // и его материал пересоздаются. Без этого drei держит тот же
+    // material instance, иногда не подхватывая обновлённый map prop;
+    // в результате кубы оставались белыми без лого.
     return (
-      <Instances limit={65536} range={cubes.length} castShadow receiveShadow>
+      <Instances
+        key={dhlTex ? 'dhl-tex' : 'dhl-plain'}
+        limit={65536}
+        range={cubes.length}
+        castShadow
+        receiveShadow
+      >
         <boxGeometry args={[0.95, 0.95, 0.95]} />
         <meshStandardMaterial
           wireframe={wireframe}
