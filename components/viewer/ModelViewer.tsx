@@ -184,19 +184,19 @@ export function ModelViewer() {
       </Canvas>
 
       {/*
-        Top row: Render label (left) + style chips (центр). Reset/wireframe
-        в правом верхнем углу — отдельным абсолютом ниже. Чипсы рендерятся
-        с backdrop-blur'ом → читаются и на тёмных стилях (neon/mercury).
+        Top row: Render label на левом краю + style chips по центру card'а.
+        Reset/wireframe в правом верхнем углу — отдельным абсолютом ниже.
+        Чипсы рендерятся с backdrop-blur'ом → читаются и на тёмных стилях.
       */}
-      <div className="absolute top-4 left-4 right-16 z-10 flex items-center gap-3 flex-wrap">
-        <span
-          className={cn(
-            'text-[14px] font-medium tracking-tight shrink-0',
-            isDark ? 'text-white/55' : 'cs-label'
-          )}
-        >
-          Render
-        </span>
+      <span
+        className={cn(
+          'absolute top-4 left-4 z-10 text-[14px] font-medium tracking-tight',
+          isDark ? 'text-white/55' : 'cs-label'
+        )}
+      >
+        Render
+      </span>
+      <div className="absolute top-4 left-1/2 -translate-x-1/2 z-10">
         <StyleSelector />
       </div>
 
