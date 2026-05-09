@@ -202,19 +202,29 @@ export function ModelViewer() {
       </Canvas>
 
       {/*
-        Top row: Render label на левом краю + style chips по центру card'а.
-        Reset/wireframe в правом верхнем углу — отдельным абсолютом ниже.
-        Чипсы рендерятся с backdrop-blur'ом → читаются и на тёмных стилях.
+        Mobile (<sm): Render label + style chips share a wrapping row,
+          right edge stops short of the Reset/wireframe cluster.
+        sm+: Render label anchored top-left; style chips centered.
+        backdrop-blur on the chips keeps them readable on dark styles.
       */}
+      <div
+        className={cn(
+          'sm:hidden absolute top-6 left-6 right-20 z-10 flex items-center gap-2 flex-wrap',
+          isDark ? 'text-white/55' : 'text-text'
+        )}
+      >
+        <span className="cs-label shrink-0">Render</span>
+        <StyleSelector />
+      </div>
       <span
         className={cn(
-          'absolute top-6 left-6 z-10 text-[14px] font-medium tracking-tight',
+          'hidden sm:inline absolute top-6 left-6 z-10 text-[14px] font-medium tracking-tight',
           isDark ? 'text-white/55' : 'cs-label'
         )}
       >
         Render
       </span>
-      <div className="absolute top-6 left-1/2 -translate-x-1/2 z-10">
+      <div className="hidden sm:block absolute top-6 left-1/2 -translate-x-1/2 z-10">
         <StyleSelector />
       </div>
 
