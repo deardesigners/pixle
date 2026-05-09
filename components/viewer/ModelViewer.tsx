@@ -4,7 +4,7 @@ import { Suspense, useEffect, useMemo, useRef, useState } from 'react';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import { OrbitControls, Environment, ContactShadows } from '@react-three/drei';
 import { EffectComposer, Bloom, ToneMapping } from '@react-three/postprocessing';
-import { ToneMappingMode } from 'postprocessing';
+import { ToneMappingMode, KernelSize } from 'postprocessing';
 import * as THREE from 'three';
 import { useEditor, pixelsToFlat } from '@/lib/store';
 import { STYLE_PRESETS, STYLE_RENDER } from '@/lib/styles';
@@ -170,12 +170,13 @@ export function ModelViewer() {
           <Bloom
             mipmapBlur
             intensity={
-              currentStyle === 'disco' ? 3.2 : currentStyle === 'neon' ? 1.4 : 0.45
+              currentStyle === 'disco' ? 5.5 : currentStyle === 'neon' ? 1.4 : 0.45
             }
             luminanceThreshold={
               currentStyle === 'disco' ? 0.0 : currentStyle === 'neon' ? 0.2 : 0.85
             }
-            luminanceSmoothing={currentStyle === 'disco' ? 0.6 : 0.4}
+            luminanceSmoothing={currentStyle === 'disco' ? 0.7 : 0.4}
+            kernelSize={currentStyle === 'disco' ? KernelSize.HUGE : KernelSize.LARGE}
           />
           <ToneMapping mode={ToneMappingMode.ACES_FILMIC} />
         </EffectComposer>

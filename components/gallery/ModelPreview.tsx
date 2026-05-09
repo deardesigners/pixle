@@ -3,7 +3,7 @@
 import { Canvas, useFrame } from '@react-three/fiber';
 import { Environment, ContactShadows } from '@react-three/drei';
 import { EffectComposer, Bloom, ToneMapping } from '@react-three/postprocessing';
-import { ToneMappingMode } from 'postprocessing';
+import { ToneMappingMode, KernelSize } from 'postprocessing';
 import { Suspense, useMemo, useRef } from 'react';
 import * as THREE from 'three';
 import { pixelsToCubes } from '@/lib/pixelToCubes';
@@ -45,12 +45,13 @@ export function ModelPreview({
         <Bloom
           mipmapBlur
           intensity={
-            styleId === 'disco' ? 3.2 : styleId === 'neon' ? 1.4 : 0.4
+            styleId === 'disco' ? 5.5 : styleId === 'neon' ? 1.4 : 0.4
           }
           luminanceThreshold={
             styleId === 'disco' ? 0.0 : styleId === 'neon' ? 0.2 : 0.85
           }
-          luminanceSmoothing={styleId === 'disco' ? 0.6 : 0.4}
+          luminanceSmoothing={styleId === 'disco' ? 0.7 : 0.4}
+          kernelSize={styleId === 'disco' ? KernelSize.HUGE : KernelSize.LARGE}
         />
         <ToneMapping mode={ToneMappingMode.ACES_FILMIC} />
       </EffectComposer>
