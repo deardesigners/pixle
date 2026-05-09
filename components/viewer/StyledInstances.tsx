@@ -52,16 +52,21 @@ export function StyledInstances({
   }, [styleId]);
 
   // Disco — DUNE-палитра (cyan/orange/red) с HDR-значениями.
+  // Disco — сохраняем оттенок исходного пикселя (форма читается),
+  // прибиваем насыщенность к 1.0 и умножаем RGB на HDR-multiplier чтобы
+  // каждый куб блумился собственным цветом без размытия в белое пятно.
   const discoCubes = useMemo(() => {
     if (styleId !== 'disco') return cubes;
-    const cyan = new THREE.Color().setRGB(0.0, 4.5, 5.5);
-    const orange = new THREE.Color().setRGB(5.5, 1.6, 0.05);
-    const red = new THREE.Color().setRGB(5.0, 0.3, 0.4);
+    const hdr = 2.4;
     return cubes.map((c) => {
       const hsl = { h: 0, s: 0, l: 0 };
       c.color.getHSL(hsl);
-      const palette = hsl.l > 0.6 ? cyan : hsl.l > 0.35 ? orange : red;
-      return { pos: c.pos, color: palette.clone() };
+      const out = new THREE.Color();
+      out.setHSL(hsl.h, 1.0, 0.55);
+      out.r *= hdr;
+      out.g *= hdr;
+      out.b *= hdr;
+      return { pos: c.pos, color: out };
     });
   }, [styleId, cubes]);
 
