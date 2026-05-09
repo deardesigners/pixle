@@ -38,7 +38,7 @@ export default function GalleryPage() {
         {/* Studio-parity top header: rotating 3D logo + tagline (left), primary CTA back to studio (right). */}
         <header className="px-6 pt-4 pb-3 flex items-center gap-3">
           <Link href="/" aria-label="Pixle home" className="flex items-center gap-3">
-            <LogoMark sizeClass="h-12 w-12" />
+            <LogoMark sizeClass="h-16 w-16" />
             <span className="cs-label hidden sm:inline">Gallery · public feed</span>
           </Link>
           <Link href="/" className="ml-auto">
