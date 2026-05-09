@@ -6,9 +6,7 @@ import { cn } from '@/lib/utils';
 
 const STYLE_HINTS: Record<string, string> = {
   voxel: 'Chunky stacked cubes',
-  plush: 'Soft squishy spheres',
-  crystal: 'Refractive faceted glass',
-  neon: 'Glowing wireframe in the dark',
+  neon: 'Glowing tubes in the dark',
   mercury: 'Liquid chrome blob'
 };
 
@@ -21,7 +19,7 @@ export function StyleSelector() {
         <span className="cs-label">Style</span>
         <span className="cs-label">{STYLE_PRESETS[currentStyle].label}</span>
       </div>
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2.5">
+      <div className="grid grid-cols-3 gap-2.5">
         {STYLE_LIST.map((s) => (
           <Tooltip key={s.id} content={STYLE_HINTS[s.id] ?? s.description}>
             <button

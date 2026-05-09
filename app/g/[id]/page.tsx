@@ -122,10 +122,9 @@ export default async function WorkPage({ params }: Params) {
 
           <h3 className="font-display text-lg tracking-tightest mt-2">About this style</h3>
           <p className="text-muted leading-relaxed">
-            {styleLabel} is one of five render styles available in Pixle. Draw any pixel art
+            {styleLabel} is one of three render styles available in Pixle. Draw any pixel art
             and instantly see it extruded as a 3D model — no modeling software, no setup. Pick
-            from Voxel, Plush, Crystal, Neon, and Mercury to give your sprite a different
-            material and feel.
+            from Voxel, Neon, and Mercury to give your sprite a different material and feel.
           </p>
 
           <div className="flex items-center gap-2 mt-2">

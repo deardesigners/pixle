@@ -24,20 +24,6 @@ export const STYLE_PRESETS: Record<StyleId, StylePreset> = {
     description: 'Chunky stacked cubes',
     idleAnimation: 'float'
   },
-  plush: {
-    id: 'plush',
-    label: 'Plush',
-    emoji: '🧸',
-    description: 'Soft squishy spheres',
-    idleAnimation: 'breathe'
-  },
-  crystal: {
-    id: 'crystal',
-    label: 'Crystal',
-    emoji: '💎',
-    description: 'Refractive faceted gems',
-    idleAnimation: 'tiltSpin'
-  },
   neon: {
     id: 'neon',
     label: 'Neon',
@@ -67,8 +53,6 @@ export type StyleRenderConfig = {
 
 export const STYLE_RENDER: Record<StyleId, StyleRenderConfig> = {
   voxel:   { background: '#F3F0FF', ambient: 1.2, directional: 0.35, envIntensity: 0.05, envPreset: 'apartment', contactShadow: 0.5 },
-  plush:   { background: '#FFE4E9', ambient: 1.5, directional: 0.25, envIntensity: 0.1,  envPreset: 'apartment', contactShadow: 0.35 },
-  crystal: { background: '#0F1230', ambient: 0.35, directional: 0.4, envIntensity: 1.8,  envPreset: 'sunset',    contactShadow: 0 },
   neon:    { background: '#07070F', ambient: 1.8, directional: 0.0, envIntensity: 0,    envPreset: 'night',     contactShadow: 0 },
   mercury: { background: '#161B26', ambient: 0.3, directional: 0.45, envIntensity: 1.6,  envPreset: 'warehouse', contactShadow: 0 }
 };
