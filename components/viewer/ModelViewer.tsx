@@ -45,13 +45,25 @@ export function ModelViewer() {
       toast('Сцена ещё не готова');
       return;
     }
+    // Размер из текущего размера превью (CSS-пиксели). Камера и ракурс уже
+    // живут в OrbitControls, sample frames используют ту же камеру — то
+    // есть GIF получается ровно тем же кадром, что пользователь видит.
+    // Cap на 640 по длинной стороне, иначе на больших экранах файл уезжает
+    // в десятки мегабайт и кодирование становится мучительным.
+    const cw = Math.max(1, Math.round(canvas.clientWidth));
+    const ch = Math.max(1, Math.round(canvas.clientHeight));
+    const MAX_SIDE = 640;
+    const scale = Math.min(1, MAX_SIDE / Math.max(cw, ch));
+    const width = Math.max(64, Math.round(cw * scale));
+    const height = Math.max(64, Math.round(ch * scale));
+
     setExportingGif(true);
     setGifProgress(0);
     try {
       const blob = await exportGif({
         canvas,
-        width: 320,
-        height: 320,
+        width,
+        height,
         fps: 24,
         durationSec: 2.5,
         background: render.background,
