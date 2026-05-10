@@ -3,9 +3,8 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { useState, useTransition } from 'react';
-import { Heart, Recycle, Maximize2 } from 'lucide-react';
+import { Heart, Recycle, Flag } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { Tooltip } from '@/components/ui/tooltip';
 import { ModelPreview } from './ModelPreview';
 import { STYLE_PRESETS } from '@/lib/styles';
@@ -68,13 +67,35 @@ export function GalleryCard({
     window.location.href = `/?remix=${item.id}`;
   };
 
+  const [reported, setReported] = useState(false);
+  const onReport = () => {
+    if (reported) return;
+    // Optimistic — disable the button immediately so a moderator's inbox
+    // doesn't get hammered if the user re-taps.
+    setReported(true);
+    startTransition(async () => {
+      try {
+        const res = await fetch(`/api/gallery/${item.id}/report`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ clientId })
+        });
+        if (!res.ok) throw new Error('Report failed');
+        toast('Reported · thanks for the heads-up');
+      } catch {
+        setReported(false);
+        toast("Couldn't send report. Try again.");
+      }
+    });
+  };
+
   const thumb = item.thumbnail_url || item.preview_url;
   const hasModel = item.pixel_data && item.pixel_data.pixels?.length > 0;
 
   const workHref = `/g/${item.id}`;
 
   return (
-    <div className="cs-card overflow-hidden group">
+    <div className="cs-card overflow-hidden group relative">
       <Tooltip content="Open · hover for 3D preview">
         <Link
           href={workHref}
@@ -98,20 +119,31 @@ export function GalleryCard({
             <ModelPreview pixelData={item.pixel_data} styleId={safeStyleId} />
           </div>
         )}
-        <Badge className="absolute top-2 left-2">
-          <span>{preset.emoji}</span>
-          <span>{preset.label}</span>
-        </Badge>
-        <Button
-          size="icon"
-          variant="secondary"
-          className="absolute top-2 right-2 h-8 w-8 pointer-events-none"
-          aria-hidden
-        >
-          <Maximize2 className="h-3.5 w-3.5" />
-        </Button>
         </Link>
       </Tooltip>
+      {/* Flag corner-overlay — sits on top of the thumbnail in its own
+          stacking context so the click doesn't bubble into the Link.
+          Replaces the previous bottom-row Flag button. */}
+      <div className="absolute top-2 left-2 z-10">
+        <Tooltip content={reported ? 'Already reported' : 'Report inappropriate content'}>
+          <button
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              onReport();
+            }}
+            disabled={reported}
+            aria-label="Report this work"
+            className={cn(
+              'inline-flex items-center justify-center h-8 w-8 rounded-full bg-black/45 text-white/85 backdrop-blur transition-colors',
+              'hover:bg-black/65 hover:text-white',
+              reported && 'opacity-40 pointer-events-none'
+            )}
+          >
+            <Flag className="h-3.5 w-3.5" />
+          </button>
+        </Tooltip>
+      </div>
       <div className="flex items-center justify-between p-3">
         <Tooltip content={liked ? 'Remove like' : 'Like this work'}>
           <button
