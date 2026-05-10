@@ -42,12 +42,10 @@ export default function GalleryPage() {
             <span className="cs-label hidden sm:inline">Gallery · public feed</span>
           </Link>
           <Link href="/" className="ml-auto">
-            <Tooltip content="Back to the studio">
-              <Button variant="default" aria-label="Back to studio" className="cs-glow">
-                <ArrowLeft className="h-[18px] w-[18px]" />
-                Studio
-              </Button>
-            </Tooltip>
+            <Button variant="default" aria-label="Back to studio" className="cs-glow">
+              <ArrowLeft className="h-[18px] w-[18px]" />
+              Studio
+            </Button>
           </Link>
         </header>
 
@@ -83,7 +81,6 @@ export default function GalleryPage() {
                     aria-pressed={style === s.id}
                     aria-label={`Filter by ${s.label}`}
                   >
-                    <span className="opacity-70">{s.emoji}</span>
                     {s.label}
                   </button>
                 </Tooltip>
