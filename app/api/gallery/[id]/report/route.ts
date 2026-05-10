@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { getGeneration } from '@/lib/db/queries';
-import { isTelegramConfigured, sendReportAlert } from '@/lib/telegram';
+import { isEmailConfigured, sendReportEmail } from '@/lib/email';
 
 export const runtime = 'nodejs';
 
@@ -16,7 +16,7 @@ export async function POST(req: Request, { params }: Params): Promise<Response> 
     if (!process.env.POSTGRES_URL) {
       return NextResponse.json({ code: 'STORAGE_NOT_CONFIGURED' }, { status: 503 });
     }
-    if (!isTelegramConfigured()) {
+    if (!isEmailConfigured()) {
       return NextResponse.json({ code: 'MODERATION_NOT_CONFIGURED' }, { status: 503 });
     }
 
@@ -25,7 +25,7 @@ export async function POST(req: Request, { params }: Params): Promise<Response> 
     const item = await getGeneration(params.id);
     if (!item) return NextResponse.json({ code: 'NOT_FOUND' }, { status: 404 });
 
-    await sendReportAlert({
+    await sendReportEmail({
       itemId: item.id,
       styleId: item.style_id,
       thumbnailUrl: item.thumbnail_url || item.preview_url || null,

@@ -1,50 +1,45 @@
-# Gallery moderation via Telegram
+# Gallery moderation
 
-Reports flow into a Telegram chat with **🗑 Delete** / **✅ Dismiss** buttons.
-Tapping a button calls back into Pixle and either removes the gallery item
-(plus its blob files) or marks the alert as dismissed.
+Reports surface as email; deletion happens in the Vercel dashboard. No bots,
+no admin tokens, no public delete endpoint.
+
+## How it works
+
+1. Visitor taps the small flag on a gallery card.
+2. `POST /api/gallery/[id]/report` validates the item exists and sends an
+   email via [Resend](https://resend.com/) to the moderation inbox.
+3. Moderator reads the email (preview, link, ID), opens the Vercel dashboard,
+   and removes the row manually.
 
 ## One-time setup
 
-1. **Create the bot.** In Telegram, talk to `@BotFather` → `/newbot` → save the
-   token that's printed (`123456:ABC-DEF…`).
-2. **Find the chat ID.** Send any message to your bot, then open
-   `https://api.telegram.org/bot<TOKEN>/getUpdates` in a browser. Look for
-   `chat.id` in the JSON. Use the numeric id (negative for groups, positive
-   for private chats).
-3. **Generate a webhook secret.** Any random 32+ char string works:
-   `openssl rand -hex 32`.
-4. **Set Vercel env vars** (`Settings → Environment Variables`):
-   - `TELEGRAM_BOT_TOKEN` = bot token from step 1
-   - `TELEGRAM_CHAT_ID` = chat id from step 2
-   - `TELEGRAM_WEBHOOK_SECRET` = secret from step 3
-5. **Deploy** so the new env vars are live.
-6. **Register the webhook** so Telegram knows where to deliver button presses:
+1. **Resend account.** Sign up at [resend.com](https://resend.com/), grab an
+   API key from `API Keys`. Free tier covers ~100 emails/day, plenty for
+   reports.
+2. **Sender** (optional but recommended). Verify the `pixle.art` domain in
+   Resend and use a sender like `reports@pixle.art`. Without verification
+   email goes from `onboarding@resend.dev` and is more likely to land in
+   spam.
+3. **Vercel env vars** (`Settings → Environment Variables`):
+   - `RESEND_API_KEY` — from step 1
+   - `MODERATION_EMAIL` — inbox to receive reports (e.g. your gmail)
+   - `MODERATION_FROM` — *(optional)* verified sender, default
+     `Pixle Reports <onboarding@resend.dev>`
+4. **Deploy** so the new env vars are live.
 
-   ```sh
-   curl -F "url=https://pixle.art/api/telegram/webhook" \
-        -F "secret_token=$TELEGRAM_WEBHOOK_SECRET" \
-        "https://api.telegram.org/bot$TELEGRAM_BOT_TOKEN/setWebhook"
-   ```
+## Removing a reported item
 
-   Expected response: `{"ok":true,"result":true,...}`. If it isn't `ok:true`,
-   check that the URL is HTTPS, public, and resolves to a 2xx.
+When a report email arrives:
 
-## Verifying it works
+1. Open the Vercel project → **Storage** → click the Postgres store.
+2. Switch to **Data** and the `generations` table.
+3. Filter by `id = '<id from email>'`. Delete that row.
+4. Optional cleanup: in the `likes` table, delete rows where
+   `generation_id = '<id>'`.
+5. The blob files (thumbnail + preview) are unreferenced after that. They
+   stay in Vercel Blob until manually pruned in `Storage → Blob`.
 
-- Open the gallery, tap the small flag icon on any card.
-- The Telegram chat should receive a message with the thumbnail, the item
-  link, and `Delete` / `Dismiss` buttons.
-- Tap `Delete` → message edits to `🗑 Deleted by @you`, the gallery item
-  disappears (refresh the gallery to confirm).
+## Spam protection
 
-## Troubleshooting
-
-- **No alert arrives.** Check `vercel logs` for the report endpoint — most
-  failures are missing env vars (`Telegram not configured`).
-- **Button taps do nothing.** Re-run the `setWebhook` command. Telegram
-  silently retries failed deliveries; check `getWebhookInfo` for the last
-  error: `https://api.telegram.org/bot<TOKEN>/getWebhookInfo`.
-- **`Delete` reports an error.** Make sure the deploy is on a recent commit
-  that has `lib/db/queries.ts:deleteGeneration`. Blob deletion is best-effort
-  — even if a blob 404s, the row gets removed.
+There's no rate limit on reports yet. If abuse becomes a problem, add a
+per-`clientId` cooldown in `app/api/gallery/[id]/report/route.ts`.
