@@ -36,6 +36,15 @@ export async function getGeneration(id: string): Promise<GenerationRow | null> {
 }
 
 /**
+ * Delete a generation row + its likes. Caller is responsible for deleting
+ * the associated Vercel Blob files (preview + thumbnail).
+ */
+export async function deleteGeneration(id: string): Promise<void> {
+  await db`DELETE FROM likes WHERE generation_id = ${id}`;
+  await db`DELETE FROM generations WHERE id = ${id}`;
+}
+
+/**
  * Динамический SELECT: разные фильтры (style/clientId), сортировка (recent/popular)
  * и курсорная пагинация — собираем параметризованный SQL вручную, не tagged template,
  * потому что @vercel/postgres `sql` не поддерживает вложенную композицию фрагментов.
